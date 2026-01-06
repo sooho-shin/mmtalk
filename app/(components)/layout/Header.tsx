@@ -10,7 +10,7 @@ const Header = () => {
 
     return (
         <header className={styles.header}>
-            <div className={styles.logo}>MMTalk</div>
+            <div className={styles.logo}>쇼핑</div>
             <nav>
                 <ul className={styles.navList}>
                     <li><a href="/">Home</a></li>

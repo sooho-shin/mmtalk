@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import "./globals.scss";
 import { ApolloProviderWrapper } from "./(lib)/apollo-provider";
-
-const inter = Inter({ subsets: ["latin"] });
+import { pretendard } from "@/styles/fonts";
 
 export const metadata: Metadata = {
   title: "MMTalk",
@@ -16,8 +14,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ko">
-      <body className={inter.className}>
+    <html lang="ko" className={pretendard.variable}>
+      <body>
         <ApolloProviderWrapper>{children}</ApolloProviderWrapper>
       </body>
     </html>
