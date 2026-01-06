@@ -1,0 +1,73 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Diagnostic reports (https://nodejs.org/api/report.html)
+.report/
+
+# Runtime data
+.next/
+.nuxt/
+.vercel/
+.sapper/
+.history/
+.svelte-kit/
+.stackbit-build/
+.output/
+
+# End of https://www.toptal.com/developers/gitignore/api/nextjs,react,typescript,node,sass,graphql
+# nextjs/react/typescript/node/sass/graphql specific additions
+
+# Dependency directories
+node_modules/
+.pnp/
+.pnp.js
+
+# Testing
+/.nyc_output
+/coverage
+/.loki
+/.test
+
+
+# Misc
+.DS_Store
+*.pem
+*.key
+.next/
+.next-ssr/ # Vercel specific
+.vercel/ # Vercel specific
+out/ # next export output
+dist/ # generally build output
+
+# Editor directories and files
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# If you use yarn:
+yarn-error.log
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*
+
+# If you use pnpm:
+pnpm-lock.yaml
+
+# macOS specific
+.DS_Store
+
+# Temporary files
+*.tmp
+*.temp
+
+# Gemini specific
+.gemini/
