@@ -236,6 +236,15 @@
     position: relative;
 }
 
+.dropdownLabel {
+    display: block;
+    font-size: $font-size-13;
+    font-weight: 600;
+    color: $color-label-primary;
+    margin-bottom: $spacing-8;
+    margin-top: $spacing-8;
+}
+
 .dropdownTrigger {
     @include button-reset;
     @include flex-between;
@@ -260,6 +269,13 @@
             transform: rotate(180deg);
         }
     }
+
+    &.disabled {
+        background-color: $color-gray-100;
+        color: $color-gray-400;
+        cursor: not-allowed;
+        border-color: $color-gray-200;
+    }
 }
 
 .dropdownMenu {
@@ -278,6 +294,9 @@
     font-size: $font-size-14;
     color: $color-label-primary;
     border-bottom: 1px solid $color-gray-100;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 
     &:last-child {
         border-bottom: none;

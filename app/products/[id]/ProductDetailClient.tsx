@@ -26,6 +26,7 @@ interface SelectedOption {
     optionNo: number;
     displayName: string;
     price: number;
+    addPrice: number;
     quantity: number;
 }
 
@@ -57,25 +58,31 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
     // children이 있는지 확인 (2단계 옵션인지)
     const hasChildren = multiLevelOptions.some(opt => opt.children && opt.children.length > 0);
 
-    // 첫 번째 드롭다운 옵션 목록
-    const firstOptions = useMemo(() => {
+    // 옵션 정보 타입
+    interface OptionItem {
+        value: string;
+        addPrice: number;
+    }
+
+    // 첫 번째 드롭다운 옵션 목록 (value + addPrice)
+    const firstOptions = useMemo((): OptionItem[] => {
         if (optionType === 'COMBINATION') {
             if (hasChildren) {
-                // 2단계: multiLevelOptions의 value가 첫 번째 단계
-                return multiLevelOptions.map(opt => opt.value).filter(v => v);
+                // 2단계: multiLevelOptions의 value가 첫 번째 단계 (addPrice 없음)
+                return multiLevelOptions.map(opt => ({ value: opt.value, addPrice: 0 })).filter(v => v.value);
             } else {
-                // 1단계: multiLevelOptions의 각 value가 개별 옵션
-                return multiLevelOptions.map(opt => opt.value).filter(v => v);
+                // 1단계: flatOptions에서 addPrice 가져오기
+                return flatOptions.map(opt => ({ value: opt.value, addPrice: opt.addPrice }));
             }
         } else {
             // REQUIRED 등: 필수옵션 그룹의 children
             const requiredGroup = multiLevelOptions.find(opt => opt.isRequiredOption);
-            return requiredGroup?.children?.map(c => c.value) || [];
+            return requiredGroup?.children?.map(c => ({ value: c.value, addPrice: c.addPrice })) || [];
         }
-    }, [optionType, multiLevelOptions, hasChildren]);
+    }, [optionType, multiLevelOptions, flatOptions, hasChildren]);
 
-    // 두 번째 드롭다운 옵션 목록
-    const secondOptions = useMemo(() => {
+    // 두 번째 드롭다운 옵션 목록 (value + addPrice)
+    const secondOptions = useMemo((): OptionItem[] => {
         if (optionType === 'COMBINATION') {
             if (!hasChildren) {
                 // 1단계 옵션: 두 번째 드롭다운 없음
@@ -83,20 +90,24 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
             }
             // 2단계: 선택된 첫 번째 옵션에 따른 두 번째 옵션 목록
             if (!selectedSize) {
-                const allColors = new Set<string>();
+                const allColors: OptionItem[] = [];
+                const seen = new Set<string>();
                 multiLevelOptions.forEach(sizeOpt => {
                     sizeOpt.children?.forEach(colorOpt => {
-                        allColors.add(colorOpt.value);
+                        if (!seen.has(colorOpt.value)) {
+                            seen.add(colorOpt.value);
+                            allColors.push({ value: colorOpt.value, addPrice: colorOpt.addPrice });
+                        }
                     });
                 });
-                return Array.from(allColors);
+                return allColors;
             }
             const sizeOpt = multiLevelOptions.find(opt => opt.value === selectedSize);
-            return sizeOpt?.children?.map(c => c.value) || [];
+            return sizeOpt?.children?.map(c => ({ value: c.value, addPrice: c.addPrice })) || [];
         } else {
             // REQUIRED 등: 선택옵션 그룹
             const optionalGroup = multiLevelOptions.find(opt => !opt.isRequiredOption);
-            return optionalGroup?.children?.map(c => c.value) || [];
+            return optionalGroup?.children?.map(c => ({ value: c.value, addPrice: c.addPrice })) || [];
         }
     }, [optionType, selectedSize, multiLevelOptions, hasChildren]);
 
@@ -173,13 +184,17 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
             );
         } else {
             // 새로 추가
-            const displayName = second ? `${first} / ${second}` : first;
+            let displayName = second ? `${first} / ${second}` : first;
+            if (option.addPrice !== 0) {
+                displayName += ` (${option.addPrice > 0 ? '+' : ''}${option.addPrice.toLocaleString()}원)`;
+            }
             setSelectedOptions(prev => [
                 ...prev,
                 {
                     optionNo: option.optionNo,
                     displayName,
                     price: option.buyPrice,
+                    addPrice: option.addPrice,
                     quantity: 1,
                 }
             ]);
@@ -205,6 +220,16 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
     };
 
     const totalPrice = selectedOptions.reduce((sum, opt) => sum + (opt.price * opt.quantity), 0);
+
+    // 필수옵션이 선택되었는지 확인 (REQUIRED 타입에서만 적용)
+    const hasRequiredOptionSelected = useMemo(() => {
+        if (optionType !== 'REQUIRED') return true; // COMBINATION 등은 항상 true
+        const requiredGroup = multiLevelOptions.find(opt => opt.isRequiredOption);
+        if (!requiredGroup?.children) return true;
+        // 선택된 옵션 중 필수옵션이 있는지 확인
+        const requiredOptionNos = requiredGroup.children.map(c => c.optionNo);
+        return selectedOptions.some(opt => requiredOptionNos.includes(opt.optionNo));
+    }, [optionType, multiLevelOptions, selectedOptions]);
 
     const handleDragEnd = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
         const threshold = 100;
@@ -349,13 +374,14 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                                                 exit={{ height: 0, opacity: 0 }}
                                                 transition={{ duration: 0.2, ease: 'easeInOut' }}
                                             >
-                                                {firstOptions.map((option: string) => (
+                                                {firstOptions.map((option) => (
                                                     <button
-                                                        key={option}
+                                                        key={option.value}
                                                         className={styles.dropdownItem}
-                                                        onClick={() => handleFirstSelect(option)}
+                                                        onClick={() => handleFirstSelect(option.value)}
                                                     >
-                                                        {option}
+                                                        {option.value}
+                                                        {option.addPrice !== 0 && ` (${option.addPrice > 0 ? '+' : ''}${option.addPrice.toLocaleString()}원)`}
                                                     </button>
                                                 ))}
                                             </motion.div>
@@ -366,14 +392,24 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                                 {/* 두 번째 드롭다운 (선택옵션이 있을 때만) */}
                                 {secondOptions.length > 0 && (
                                     <div className={styles.dropdownWrapper}>
+                                        {/* 선택 라벨 */}
+                                        {optionType === 'REQUIRED' && (
+                                            <span className={styles.dropdownLabel}>선택</span>
+                                        )}
                                         <button
-                                            className={`${styles.dropdownTrigger} ${colorDropdownOpen ? styles.open : ''}`}
+                                            className={`${styles.dropdownTrigger} ${colorDropdownOpen ? styles.open : ''} ${!hasRequiredOptionSelected ? styles.disabled : ''}`}
                                             onClick={() => {
+                                                if (!hasRequiredOptionSelected) return;
                                                 setColorDropdownOpen(!colorDropdownOpen);
                                                 setSizeDropdownOpen(false);
                                             }}
+                                            disabled={!hasRequiredOptionSelected}
                                         >
-                                            <span>{selectedColor || `${labels[1] || '옵션'}`}</span>
+                                            <span>
+                                                {!hasRequiredOptionSelected
+                                                    ? '필수옵션 선택 시 구매 가능합니다'
+                                                    : (selectedColor || `${labels[1] || '옵션'}`)}
+                                            </span>
                                             <motion.svg
                                                 width="12"
                                                 height="12"
@@ -395,13 +431,14 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                                                     exit={{ height: 0, opacity: 0 }}
                                                     transition={{ duration: 0.2, ease: 'easeInOut' }}
                                                 >
-                                                    {secondOptions.map((option: string) => (
+                                                    {secondOptions.map((option) => (
                                                         <button
-                                                            key={option}
+                                                            key={option.value}
                                                             className={styles.dropdownItem}
-                                                            onClick={() => handleSecondSelect(option)}
+                                                            onClick={() => handleSecondSelect(option.value)}
                                                         >
-                                                            {option}
+                                                            {option.value}
+                                                            {option.addPrice !== 0 && ` (${option.addPrice > 0 ? '+' : ''}${option.addPrice.toLocaleString()}원)`}
                                                         </button>
                                                     ))}
                                                 </motion.div>
