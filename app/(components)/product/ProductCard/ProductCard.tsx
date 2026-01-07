@@ -75,9 +75,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                     {/* 별점 및 리뷰 */}
                     {rating !== undefined && (
                         <div className={styles.ratingRow}>
-                            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                                <path d="M6 0.5L7.76336 4.07295L11.7063 4.64683L8.85317 7.42705L9.52671 11.3532L6 9.5L2.47329 11.3532L3.14683 7.42705L0.293661 4.64683L4.23664 4.07295L6 0.5Z" fill="#FFC107" />
-                            </svg>
+                            <img src="/images/ic_star.svg" alt="별점" width={12} height={12} />
                             <span className={styles.rating}>{rating}</span>
                             {reviewCount !== undefined && (
                                 <span className={styles.reviewCount}>({reviewCount})</span>
