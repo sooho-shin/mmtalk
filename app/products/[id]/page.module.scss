@@ -1,0 +1,407 @@
+@import '../../../styles/variables';
+@import '../../../styles/mixins';
+
+.container {
+    @include mobile-container;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+.loadingState {
+    @include flex-center;
+    flex-direction: column;
+    gap: $spacing-16;
+    height: calc(100vh - $header-height);
+    font-size: $font-size-14;
+    color: $color-label-secondary;
+}
+
+.spinner {
+    width: 24px;
+    height: 24px;
+    border: 2px solid $color-gray-200;
+    border-top-color: #00C7BE;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+// 헤더
+.header {
+    @include flex-between;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: $header-height;
+    padding: 0 $spacing-16;
+    z-index: 10;
+}
+
+.backButton {
+    @include button-reset;
+    @include flex-center;
+    width: 24px;
+    height: 24px;
+    color: $color-label-primary;
+}
+
+.headerRight {
+    @include flex-start;
+    gap: $spacing-16;
+}
+
+.iconButton {
+    @include button-reset;
+    @include flex-center;
+    width: 24px;
+    height: 24px;
+    color: $color-label-primary;
+}
+
+// 상품 이미지
+.imageSection {
+    width: 100%;
+    aspect-ratio: 1;
+    background-color: $color-gray-100;
+}
+
+.productImage {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+// 상품 정보
+.infoSection {
+    padding: $spacing-16;
+    padding-bottom: 100px;
+    background-color: $color-background;
+}
+
+.brand {
+    display: block;
+    font-size: $font-size-12;
+    color: $color-label-tertiary;
+    margin-bottom: $spacing-4;
+}
+
+.productName {
+    margin: 0 0 $spacing-8;
+    font-size: $font-size-15;
+    font-weight: $font-weight-regular;
+    color: $color-label-primary;
+    line-height: 1.4;
+}
+
+.ratingRow {
+    @include flex-start;
+    gap: $spacing-4;
+    margin-bottom: $spacing-16;
+}
+
+.rating {
+    font-size: $font-size-12;
+    font-weight: $font-weight-medium;
+    color: $color-label-secondary;
+}
+
+.reviewCount {
+    font-size: $font-size-12;
+    color: $color-label-tertiary;
+}
+
+.priceSection {
+    margin-top: $spacing-8;
+}
+
+.originalPrice {
+    display: block;
+    font-size: $font-size-12;
+    color: $color-label-tertiary;
+    text-decoration: line-through;
+    margin-bottom: $spacing-4;
+}
+
+.priceRow {
+    @include flex-start;
+    gap: $spacing-6;
+}
+
+.discount {
+    font-size: $font-size-20;
+    font-weight: $font-weight-bold;
+    color: $color-red;
+}
+
+.price {
+    font-size: $font-size-20;
+    font-weight: $font-weight-bold;
+    color: $color-label-primary;
+}
+
+// 하단 버튼
+.bottomBar {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: $screen-width;
+    padding: $spacing-12 $spacing-16;
+    padding-bottom: $spacing-24;
+    background-color: $color-background;
+    border-top: 1px solid $color-gray-200;
+}
+
+.buyButton {
+    @include button-reset;
+    width: 100%;
+    height: 52px;
+    background-color: #00C7BE;
+    color: $color-white;
+    font-size: $font-size-16;
+    font-weight: $font-weight-semibold;
+    border-radius: $radius-8;
+}
+
+// 옵션 선택 바텀시트
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 100;
+}
+
+.bottomSheet {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+    width: 100%;
+    max-width: $screen-width;
+    max-height: 80vh;
+    overflow-y: auto;
+    background-color: $color-background;
+    border-radius: $radius-12 $radius-12 0 0;
+    padding: $spacing-12 $spacing-16 $spacing-24;
+    z-index: 101;
+}
+
+.sheetHandle {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: $spacing-8 0 $spacing-16;
+    cursor: grab;
+
+    &:active {
+        cursor: grabbing;
+    }
+}
+
+.handleBar {
+    width: 36px;
+    height: 4px;
+    background-color: $color-gray-300;
+    border-radius: $radius-full;
+}
+
+// 옵션 선택 드롭다운
+.optionSection {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-8;
+    margin-bottom: $spacing-16;
+}
+
+.optionLabel {
+    display: block;
+    font-size: $font-size-13;
+    color: $color-label-secondary;
+    margin-bottom: $spacing-8;
+}
+
+.dropdownWrapper {
+    position: relative;
+}
+
+.dropdownTrigger {
+    @include button-reset;
+    @include flex-between;
+    width: 100%;
+    height: 48px;
+    padding: 0 $spacing-16;
+    border: 1px solid $color-gray-300;
+    border-radius: $radius-8;
+    font-size: $font-size-14;
+    color: $color-label-tertiary;
+    background-color: $color-background;
+
+    svg {
+        transition: transform 0.2s ease;
+    }
+
+    &.open {
+        border-color: $color-label-primary;
+        border-radius: $radius-8 $radius-8 0 0;
+
+        svg {
+            transform: rotate(180deg);
+        }
+    }
+}
+
+.dropdownMenu {
+    background-color: $color-background;
+    border: 1px solid $color-label-primary;
+    border-top: none;
+    border-radius: 0 0 $radius-8 $radius-8;
+    overflow: hidden;
+}
+
+.dropdownItem {
+    @include button-reset;
+    width: 100%;
+    padding: $spacing-12 $spacing-16;
+    text-align: left;
+    font-size: $font-size-14;
+    color: $color-label-primary;
+    border-bottom: 1px solid $color-gray-100;
+
+    &:last-child {
+        border-bottom: none;
+    }
+
+    &:hover {
+        background-color: $color-gray-100;
+    }
+}
+
+// 선택된 옵션
+.selectedOption {
+    background-color: $color-gray-100;
+    border-radius: $radius-8;
+    padding: $spacing-12;
+    margin-bottom: $spacing-8;
+}
+
+.optionInfo {
+    @include flex-between;
+    margin-bottom: $spacing-8;
+}
+
+.optionName {
+    font-size: $font-size-13;
+    color: $color-label-primary;
+    flex: 1;
+    padding-right: $spacing-8;
+}
+
+.removeButton {
+    @include button-reset;
+    @include flex-center;
+    width: 20px;
+    height: 20px;
+    color: $color-label-tertiary;
+}
+
+.optionControls {
+    @include flex-between;
+}
+
+.quantityControl {
+    @include flex-center;
+    border: 1px solid $color-gray-300;
+    border-radius: 0;
+    overflow: hidden;
+}
+
+.quantityButton {
+    @include button-reset;
+    @include flex-center;
+    width: 32px;
+    height: 32px;
+    font-size: $font-size-16;
+    color: $color-label-primary;
+    background-color: $color-background;
+
+    &:hover {
+        background-color: $color-gray-100;
+    }
+}
+
+.quantityValue {
+    width: 40px;
+    text-align: center;
+    font-size: $font-size-14;
+    font-weight: $font-weight-medium;
+    color: $color-label-primary;
+    border-left: 1px solid $color-gray-300;
+    border-right: 1px solid $color-gray-300;
+    height: 32px;
+    line-height: 32px;
+    background-color: $color-background;
+}
+
+.optionPrice {
+    font-size: $font-size-14;
+    font-weight: $font-weight-bold;
+    color: $color-label-primary;
+}
+
+.totalSection {
+    @include flex-between;
+    align-items: flex-start;
+    padding: $spacing-20 0;
+    margin-top: $spacing-16;
+}
+
+.totalLabel {
+    font-size: $font-size-14;
+    color: $color-label-secondary;
+}
+
+.totalPriceWrapper {
+    text-align: right;
+}
+
+.totalPrice {
+    display: block;
+    font-size: $font-size-17;
+    font-weight: $font-weight-bold;
+    color: $color-red;
+}
+
+.deliveryNote {
+    font-size: $font-size-12;
+    color: $color-label-tertiary;
+}
+
+.confirmButton {
+    @include button-reset;
+    width: 100%;
+    height: 52px;
+    background-color: #00C7BE;
+    color: $color-white;
+    font-size: $font-size-16;
+    font-weight: $font-weight-semibold;
+    border-radius: $radius-8;
+}
+
+.buttonWrapper {
+    margin-left: -$spacing-16;
+    margin-right: -$spacing-16;
+    padding: $spacing-16;
+    border-top: 1px solid $color-gray-200;
+}

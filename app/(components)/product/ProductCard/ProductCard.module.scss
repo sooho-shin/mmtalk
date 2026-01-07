@@ -1,0 +1,109 @@
+@import '../../../../styles/variables';
+@import '../../../../styles/mixins';
+
+.card {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+}
+
+.imageWrapper {
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: $radius-8;
+    overflow: hidden;
+    background-color: $color-gray-100;
+    margin-bottom: $spacing-8;
+}
+
+.image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.info {
+    @include flex-column;
+    gap: $spacing-2;
+}
+
+.brand {
+    font-size: $font-size-11;
+    font-weight: $font-weight-regular;
+    color: $color-label-tertiary;
+}
+
+.name {
+    margin: 0;
+    font-size: $font-size-13;
+    font-weight: $font-weight-regular;
+    color: $color-label-primary;
+    line-height: 1.4;
+    @include text-truncate(2);
+}
+
+.priceRow {
+    @include flex-start;
+    gap: $spacing-4;
+    margin-top: $spacing-4;
+}
+
+.discount {
+    font-size: $font-size-14;
+    font-weight: $font-weight-bold;
+    color: $color-red;
+}
+
+.price {
+    font-size: $font-size-14;
+    font-weight: $font-weight-bold;
+    color: $color-label-primary;
+}
+
+.originalPrice {
+    font-size: $font-size-11;
+    color: $color-label-tertiary;
+    text-decoration: line-through;
+}
+
+.deliveryInfo {
+    font-size: $font-size-11;
+    color: $color-label-tertiary;
+    margin-top: $spacing-2;
+}
+
+.ratingRow {
+    @include flex-start;
+    gap: $spacing-2;
+    margin-top: $spacing-4;
+
+    svg {
+        flex-shrink: 0;
+    }
+}
+
+.rating {
+    font-size: $font-size-11;
+    font-weight: $font-weight-medium;
+    color: $color-label-secondary;
+}
+
+.reviewCount {
+    font-size: $font-size-11;
+    color: $color-label-tertiary;
+}
+
+.tags {
+    @include flex-start;
+    flex-wrap: wrap;
+    gap: $spacing-4;
+    margin-top: $spacing-6;
+}
+
+.tag {
+    padding: $spacing-2 $spacing-6;
+    background-color: $color-gray-100;
+    border-radius: $radius-4;
+    font-size: $font-size-10;
+    color: $color-label-secondary;
+}
