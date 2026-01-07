@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useMemo } from 'react';
+import { useState, useRef, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useQuery } from '@apollo/client';
@@ -51,13 +51,30 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
     );
 
     const optionInfo = optionData?.productOption;
-    const optionType = optionInfo?.type; // COMBINATION, REQUIRED 등
+    const optionType = optionInfo?.type; // COMBINATION, REQUIRED, DEFAULT 등
     const labels = optionInfo?.labels || [];
     const multiLevelOptions = optionInfo?.multiLevelOptions || [];
     const flatOptions = optionInfo?.flatOptions || [];
 
+    // DEFAULT 타입: 옵션 선택 없이 바로 상품 선택
+    const isDefaultType = optionType === 'DEFAULT';
+
     // children이 있는지 확인 (2단계 옵션인지)
     const hasChildren = multiLevelOptions.some(opt => opt.children && opt.children.length > 0);
+
+    // DEFAULT 타입일 때 바텀시트 열리면 자동으로 상품 추가
+    useEffect(() => {
+        if (showOptions && isDefaultType && flatOptions.length > 0 && selectedOptions.length === 0) {
+            const defaultOption = flatOptions[0];
+            setSelectedOptions([{
+                optionNo: defaultOption.optionNo,
+                displayName: product.productName,
+                price: defaultOption.buyPrice,
+                addPrice: defaultOption.addPrice,
+                quantity: 1,
+            }]);
+        }
+    }, [showOptions, isDefaultType, flatOptions, selectedOptions.length, product.productName]);
 
     // 옵션 정보 타입
     interface OptionItem {
@@ -349,81 +366,25 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                                 <div className={styles.handleBar}></div>
                             </div>
 
-                            {/* 옵션 선택 드롭다운들 */}
-                            <div className={styles.optionSection}>
-                                {/* Size 드롭다운 */}
-                                <div className={styles.dropdownWrapper}>
-                                    <button
-                                        className={`${styles.dropdownTrigger} ${sizeDropdownOpen ? styles.open : ''}`}
-                                        onClick={() => {
-                                            setSizeDropdownOpen(!sizeDropdownOpen);
-                                            setColorDropdownOpen(false);
-                                        }}
-                                    >
-                                        <span>{selectedSize || `${labels[0] || '옵션'}`}</span>
-                                        <motion.svg
-                                            width="12"
-                                            height="12"
-                                            viewBox="0 0 12 12"
-                                            fill="none"
-                                            animate={{ rotate: sizeDropdownOpen ? 180 : 0 }}
-                                            transition={{ duration: 0.2 }}
-                                        >
-                                            <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                        </motion.svg>
-                                    </button>
-
-                                    <AnimatePresence>
-                                        {sizeDropdownOpen && (
-                                            <motion.div
-                                                className={styles.dropdownMenu}
-                                                initial={{ height: 0, opacity: 0 }}
-                                                animate={{ height: 'auto', opacity: 1 }}
-                                                exit={{ height: 0, opacity: 0 }}
-                                                transition={{ duration: 0.2, ease: 'easeInOut' }}
-                                            >
-                                                {firstOptions.map((option) => (
-                                                    <button
-                                                        key={option.value}
-                                                        className={styles.dropdownItem}
-                                                        onClick={() => handleFirstSelect(option.value)}
-                                                    >
-                                                        {option.value}
-                                                        {option.addPrice !== 0 && ` (${option.addPrice > 0 ? '+' : ''}${option.addPrice.toLocaleString()}원)`}
-                                                    </button>
-                                                ))}
-                                            </motion.div>
-                                        )}
-                                    </AnimatePresence>
-                                </div>
-
-                                {/* 두 번째 드롭다운 (선택옵션이 있을 때만) */}
-                                {secondOptions.length > 0 && (
+                            {/* 옵션 선택 드롭다운들 (DEFAULT 타입이 아닐 때만) */}
+                            {!isDefaultType && (
+                                <div className={styles.optionSection}>
+                                    {/* Size 드롭다운 */}
                                     <div className={styles.dropdownWrapper}>
-                                        {/* 선택 라벨 */}
-                                        {optionType === 'REQUIRED' && (
-                                            <span className={styles.dropdownLabel}>선택</span>
-                                        )}
                                         <button
-                                            className={`${styles.dropdownTrigger} ${colorDropdownOpen ? styles.open : ''} ${!hasRequiredOptionSelected ? styles.disabled : ''}`}
+                                            className={`${styles.dropdownTrigger} ${sizeDropdownOpen ? styles.open : ''}`}
                                             onClick={() => {
-                                                if (!hasRequiredOptionSelected) return;
-                                                setColorDropdownOpen(!colorDropdownOpen);
-                                                setSizeDropdownOpen(false);
+                                                setSizeDropdownOpen(!sizeDropdownOpen);
+                                                setColorDropdownOpen(false);
                                             }}
-                                            disabled={!hasRequiredOptionSelected}
                                         >
-                                            <span>
-                                                {!hasRequiredOptionSelected
-                                                    ? '필수옵션 선택 시 구매 가능합니다'
-                                                    : (selectedColor || `${labels[1] || '옵션'}`)}
-                                            </span>
+                                            <span>{selectedSize || `${labels[0] || '옵션'}`}</span>
                                             <motion.svg
                                                 width="12"
                                                 height="12"
                                                 viewBox="0 0 12 12"
                                                 fill="none"
-                                                animate={{ rotate: colorDropdownOpen ? 180 : 0 }}
+                                                animate={{ rotate: sizeDropdownOpen ? 180 : 0 }}
                                                 transition={{ duration: 0.2 }}
                                             >
                                                 <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -431,7 +392,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                                         </button>
 
                                         <AnimatePresence>
-                                            {colorDropdownOpen && (
+                                            {sizeDropdownOpen && (
                                                 <motion.div
                                                     className={styles.dropdownMenu}
                                                     initial={{ height: 0, opacity: 0 }}
@@ -439,11 +400,11 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                                                     exit={{ height: 0, opacity: 0 }}
                                                     transition={{ duration: 0.2, ease: 'easeInOut' }}
                                                 >
-                                                    {secondOptions.map((option) => (
+                                                    {firstOptions.map((option) => (
                                                         <button
                                                             key={option.value}
                                                             className={styles.dropdownItem}
-                                                            onClick={() => handleSecondSelect(option.value)}
+                                                            onClick={() => handleFirstSelect(option.value)}
                                                         >
                                                             {option.value}
                                                             {option.addPrice !== 0 && ` (${option.addPrice > 0 ? '+' : ''}${option.addPrice.toLocaleString()}원)`}
@@ -453,8 +414,66 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                                             )}
                                         </AnimatePresence>
                                     </div>
-                                )}
-                            </div>
+
+                                    {/* 두 번째 드롭다운 (선택옵션이 있을 때만) */}
+                                    {secondOptions.length > 0 && (
+                                        <div className={styles.dropdownWrapper}>
+                                            {/* 선택 라벨 */}
+                                            {optionType === 'REQUIRED' && (
+                                                <span className={styles.dropdownLabel}>선택</span>
+                                            )}
+                                            <button
+                                                className={`${styles.dropdownTrigger} ${colorDropdownOpen ? styles.open : ''} ${!hasRequiredOptionSelected ? styles.disabled : ''}`}
+                                                onClick={() => {
+                                                    if (!hasRequiredOptionSelected) return;
+                                                    setColorDropdownOpen(!colorDropdownOpen);
+                                                    setSizeDropdownOpen(false);
+                                                }}
+                                                disabled={!hasRequiredOptionSelected}
+                                            >
+                                                <span>
+                                                    {!hasRequiredOptionSelected
+                                                        ? '필수옵션 선택 시 구매 가능합니다'
+                                                        : (selectedColor || `${labels[1] || '옵션'}`)}
+                                                </span>
+                                                <motion.svg
+                                                    width="12"
+                                                    height="12"
+                                                    viewBox="0 0 12 12"
+                                                    fill="none"
+                                                    animate={{ rotate: colorDropdownOpen ? 180 : 0 }}
+                                                    transition={{ duration: 0.2 }}
+                                                >
+                                                    <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                                </motion.svg>
+                                            </button>
+
+                                            <AnimatePresence>
+                                                {colorDropdownOpen && (
+                                                    <motion.div
+                                                        className={styles.dropdownMenu}
+                                                        initial={{ height: 0, opacity: 0 }}
+                                                        animate={{ height: 'auto', opacity: 1 }}
+                                                        exit={{ height: 0, opacity: 0 }}
+                                                        transition={{ duration: 0.2, ease: 'easeInOut' }}
+                                                    >
+                                                        {secondOptions.map((option) => (
+                                                            <button
+                                                                key={option.value}
+                                                                className={styles.dropdownItem}
+                                                                onClick={() => handleSecondSelect(option.value)}
+                                                            >
+                                                                {option.value}
+                                                                {option.addPrice !== 0 && ` (${option.addPrice > 0 ? '+' : ''}${option.addPrice.toLocaleString()}원)`}
+                                                            </button>
+                                                        ))}
+                                                    </motion.div>
+                                                )}
+                                            </AnimatePresence>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
 
                             {/* 선택된 옵션들 */}
                             {selectedOptions.map((option) => (
@@ -464,12 +483,14 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                                 >
                                     <div className={styles.optionInfo}>
                                         <span className={styles.optionName}>{option.displayName}</span>
-                                        <button
-                                            className={styles.removeButton}
-                                            onClick={() => handleRemoveOption(option.optionNo)}
-                                        >
-                                            <img src="/images/ic_close.svg" alt="삭제" width={16} height={16} />
-                                        </button>
+                                        {!isDefaultType && (
+                                            <button
+                                                className={styles.removeButton}
+                                                onClick={() => handleRemoveOption(option.optionNo)}
+                                            >
+                                                <img src="/images/ic_close.svg" alt="삭제" width={16} height={16} />
+                                            </button>
+                                        )}
                                     </div>
                                     <div className={styles.optionControls}>
                                         <div className={styles.quantityControl}>
