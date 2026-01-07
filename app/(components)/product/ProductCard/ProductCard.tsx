@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 import styles from './ProductCard.module.scss';
 
@@ -43,7 +44,14 @@ const ProductCard: React.FC<ProductCardProps> = ({
             <Link href={`/products/${id}`} className={styles.card}>
                 {/* 상품 이미지 */}
                 <div className={styles.imageWrapper}>
-                    <img src={imageUrl} alt={name} className={styles.image} />
+                    <Image
+                        src={imageUrl}
+                        alt={name}
+                        className={styles.image}
+                        fill
+                        sizes="(max-width: 768px) 50vw, 25vw"
+                        priority={false}
+                    />
                 </div>
 
                 {/* 상품 정보 */}
@@ -75,7 +83,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                     {/* 별점 및 리뷰 */}
                     {rating !== undefined && (
                         <div className={styles.ratingRow}>
-                            <img src="/images/ic_star.svg" alt="별점" width={12} height={12} />
+                            <Image src="/images/ic_star.svg" alt="별점" width={12} height={12} />
                             <span className={styles.rating}>{rating}</span>
                             {reviewCount !== undefined && (
                                 <span className={styles.reviewCount}>({reviewCount})</span>

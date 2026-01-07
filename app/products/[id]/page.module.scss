@@ -67,6 +67,7 @@
 
 // 상품 이미지
 .imageSection {
+    position: relative;
     width: 100%;
     aspect-ratio: 1;
     background-color: $color-gray-100;

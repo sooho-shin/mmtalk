@@ -2,6 +2,7 @@
 
 import { useState, useRef, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { useQuery } from '@apollo/client';
 import { motion, AnimatePresence, useDragControls, PanInfo } from 'framer-motion';
 import { GET_PRODUCT_OPTION, GetProductOptionData, GetProductOptionVariables } from '@/graphql/queries/getProductOption';
@@ -267,7 +268,14 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
 
             {/* 상품 이미지 */}
             <div className={styles.imageSection}>
-                <img src={imageUrl} alt={product.productName} className={styles.productImage} />
+                <Image
+                    src={imageUrl}
+                    alt={product.productName}
+                    className={styles.productImage}
+                    fill
+                    sizes="100vw"
+                    priority
+                />
             </div>
 
             {/* 상품 정보 */}
@@ -276,7 +284,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                 <h1 className={styles.productName}>{product.productName}</h1>
 
                 <div className={styles.ratingRow}>
-                    <img src="/images/ic_star.svg" alt="별점" width={12} height={12} />
+                    <Image src="/images/ic_star.svg" alt="별점" width={12} height={12} />
                     <span className={styles.rating}>{product.reviewRating}</span>
                     <span className={styles.reviewCount}>({product.totalReviewCount})</span>
                 </div>
