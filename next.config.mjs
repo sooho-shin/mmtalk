@@ -2,6 +2,7 @@ import path from 'path';
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  reactStrictMode: false,
   sassOptions: {
     includePaths: [path.join(process.cwd(), 'styles')],
   },
@@ -9,7 +10,7 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'mmtalk.cdn-nhncommerce.com',
+        hostname: '**.cdn-nhncommerce.com',
         pathname: '/**',
       },
     ],

@@ -9,6 +9,10 @@
     padding: 0 $spacing-16;
     background-color: $color-background;
     z-index: 50;
+
+    &.transparent {
+        background-color: transparent;
+    }
 }
 
 .left {

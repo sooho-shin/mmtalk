@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from 'react';
-import { useQuery, NetworkStatus } from '@apollo/client';
+import { useEffect, useRef, useCallback, useState } from 'react';
+import { useLazyQuery } from '@apollo/client';
 import { motion } from 'framer-motion';
 import { Header } from './(components)/layout';
 import { ProductGrid } from './(components)/product';
@@ -47,38 +47,36 @@ export default function HomeClient({ initialProducts, initialMeta }: HomeClientP
     const observerRef = useRef<HTMLDivElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const isRestoringScroll = useRef(false);
-    const [currentPage, setCurrentPage] = useState(1);
-    const [allProducts, setAllProducts] = useState<Product[]>(initialProducts);
-    const [totalPage, setTotalPage] = useState(initialMeta.totalPage);
-    const [isFetchingMore, setIsFetchingMore] = useState(false);
+    const lastFetchedPage = useRef(initialMeta.page); // 마지막으로 fetch한 페이지
 
-    const { data, loading, networkStatus } = useQuery<GetProductsData, GetProductsVariables>(
+    // 상태 관리 (SSR 데이터로 시작)
+    const [allProducts, setAllProducts] = useState<Product[]>(initialProducts);
+    const [currentPage, setCurrentPage] = useState(initialMeta.page);
+    const [totalPage] = useState(initialMeta.totalPage);
+    const [isFetching, setIsFetching] = useState(false);
+
+    // useLazyQuery
+    const [fetchProducts, { data, loading }] = useLazyQuery<GetProductsData, GetProductsVariables>(
         GET_PRODUCTS,
-        {
-            variables: { limit: 20, page: currentPage },
-            notifyOnNetworkStatusChange: true,
-            skip: currentPage === 1, // 첫 페이지는 SSR 데이터 사용
-        }
+        { fetchPolicy: 'network-only' }
     );
 
-    // 새 데이터가 오면 상품 목록에 추가
+    // 데이터 도착 시 useEffect로 처리 (onCompleted 대신)
     useEffect(() => {
-        if (data?.products && currentPage > 1) {
+        if (data?.products) {
             const newProducts = data.products.products;
-            setTotalPage(data.products.meta.totalPage);
-
+            // 중복 제거하여 추가
             setAllProducts(prev => {
-                // 중복 제거
                 const existingIds = new Set(prev.map(p => p.productNo));
                 const uniqueNewProducts = newProducts.filter(p => !existingIds.has(p.productNo));
                 return [...prev, ...uniqueNewProducts];
             });
-            setIsFetchingMore(false);
+            setCurrentPage(data.products.meta.page);
+            setIsFetching(false);
         }
-    }, [data, currentPage]);
+    }, [data]);
 
     const hasMore = currentPage < totalPage;
-    const isLoadingMore = networkStatus === NetworkStatus.fetchMore || isFetchingMore;
 
     // API 응답을 컴포넌트 props 형식으로 변환
     const transformedProducts: TransformedProduct[] = allProducts.map(product => ({
@@ -98,30 +96,44 @@ export default function HomeClient({ initialProducts, initialMeta }: HomeClientP
     }));
 
     // 다음 페이지 로드
-    const loadMore = useCallback(() => {
-        if (isFetchingMore || !hasMore || loading) return;
+    const handleLoadMore = useCallback(() => {
+        const nextPage = lastFetchedPage.current + 1;
 
-        setIsFetchingMore(true);
-        setCurrentPage(prev => prev + 1);
-    }, [isFetchingMore, hasMore, loading]);
+        // 이미 fetching 중이거나, 더 이상 페이지가 없거나, 이미 해당 페이지를 요청했으면 스킵
+        if (isFetching || loading || nextPage > totalPage) return;
+
+        setIsFetching(true);
+        lastFetchedPage.current = nextPage; // 즉시 업데이트 (중복 방지)
+
+        fetchProducts({
+            variables: { page: nextPage, limit: 20 }
+        });
+    }, [fetchProducts, isFetching, loading, totalPage]);
 
     // 무한스크롤: IntersectionObserver로 하단 감지
     useEffect(() => {
+        const currentObserverRef = observerRef.current;
+
         const observer = new IntersectionObserver(
             (entries) => {
-                if (entries[0].isIntersecting && hasMore && !loading && !isFetchingMore) {
-                    loadMore();
+                if (entries[0].isIntersecting) {
+                    handleLoadMore();
                 }
             },
             { threshold: 0.1, rootMargin: '100px' }
         );
 
-        if (observerRef.current) {
-            observer.observe(observerRef.current);
+        if (currentObserverRef) {
+            observer.observe(currentObserverRef);
         }
 
-        return () => observer.disconnect();
-    }, [hasMore, loading, isFetchingMore, loadMore]);
+        return () => {
+            if (currentObserverRef) {
+                observer.unobserve(currentObserverRef);
+            }
+            observer.disconnect();
+        };
+    }, [handleLoadMore]);
 
     // 스크롤 위치 저장
     useEffect(() => {
@@ -137,7 +149,7 @@ export default function HomeClient({ initialProducts, initialMeta }: HomeClientP
 
     // 스크롤 위치 복원
     useEffect(() => {
-        if (allProducts.length > 0 && !loading) {
+        if (allProducts.length > 0) {
             const savedPosition = sessionStorage.getItem(SCROLL_POSITION_KEY);
             if (savedPosition) {
                 isRestoringScroll.current = true;
@@ -149,7 +161,7 @@ export default function HomeClient({ initialProducts, initialMeta }: HomeClientP
                 });
             }
         }
-    }, [allProducts.length, loading]);
+    }, [allProducts.length]);
 
     return (
         <motion.div
@@ -166,7 +178,7 @@ export default function HomeClient({ initialProducts, initialMeta }: HomeClientP
 
                 {/* 무한스크롤 트리거 영역 */}
                 <div ref={observerRef} className={styles.loadingTrigger}>
-                    {isLoadingMore && (
+                    {(isFetching || loading) && (
                         <div className={styles.loadingMore}>
                             <div className={styles.spinner} />
                         </div>

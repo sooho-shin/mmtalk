@@ -32,7 +32,16 @@
     }
 }
 
-// 헤더
+// 헤더 래퍼
+.headerWrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 10;
+}
+
+// 헤더 (기존 스타일 유지, 필요시 삭제 가능)
 .header {
     @include flex-between;
     position: absolute;

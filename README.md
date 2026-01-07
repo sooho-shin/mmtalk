@@ -33,9 +33,9 @@ yarn dev
 
 ### 1. 상품 목록 페이지 (메인)
 - 상품 그리드 뷰
-- 무한 스크롤 (IntersectionObserver)
+- 무한 스크롤 (IntersectionObserver + Apollo `useLazyQuery`)
 - 스크롤 위치 복원 (sessionStorage)
-- SSR 초기 데이터 로딩
+- SSR 초기 데이터 로딩 (GraphQL)
 
 ### 2. 상품 상세 페이지
 - 상품 정보 표시
@@ -57,7 +57,7 @@ images: {
   remotePatterns: [
     {
       protocol: 'https',
-      hostname: 'mmtalk.cdn-nhncommerce.com',
+      hostname: '**.cdn-nhncommerce.com', // 와일드카드로 모든 서브도메인 허용
       pathname: '/**',
     },
   ],
@@ -87,17 +87,38 @@ images: {
 
 | 페이지 | 초기 데이터 | 추가 데이터 |
 |-------|-----------|-----------|
-| 메인 (상품 목록) | SSR (GraphQL) | Apollo Client (무한 스크롤) |
-| 상품 상세 | SSR (GraphQL) | Apollo Client (옵션 데이터) |
+| 메인 (상품 목록) | SSR (GraphQL fetch) | Apollo `useLazyQuery` (무한 스크롤) |
+| 상품 상세 | SSR (GraphQL fetch) | Apollo `useQuery` (옵션 데이터) |
 
 ### 구현 방식
 
 ```
 app/page.tsx (서버 컴포넌트)
-    ↓ SSR fetch (GraphQL)
+    ↓ SSR fetch (GraphQL POST)
+    ↓ 첫 페이지 데이터 + 메타 정보
+    ↓
 app/HomeClient.tsx (클라이언트 컴포넌트)
-    ↓ props로 initialProducts 전달
-    ↓ Apollo useQuery로 추가 페이지 로드
+    ↓ props로 initialProducts, initialMeta 전달
+    ↓ 초기에는 /graphql 요청 없음 (SSR 데이터 사용)
+    ↓ 스크롤 시 useLazyQuery로 추가 페이지 로드
+```
+
+### 무한 스크롤 구현 (Apollo useLazyQuery)
+
+```tsx
+// useLazyQuery: 호출할 때만 요청 (초기에 요청 안 함)
+const [fetchProducts, { data, loading }] = useLazyQuery(GET_PRODUCTS);
+
+// 중복 호출 방지: lastFetchedPage ref 사용
+const lastFetchedPage = useRef(initialMeta.page);
+
+const handleLoadMore = () => {
+    const nextPage = lastFetchedPage.current + 1;
+    if (isFetching || nextPage > totalPage) return;
+    
+    lastFetchedPage.current = nextPage; // 즉시 업데이트 (중복 방지)
+    fetchProducts({ variables: { page: nextPage, limit: 20 } });
+};
 ```
 
 ---
@@ -199,6 +220,7 @@ app/HomeClient.tsx (클라이언트 컴포넌트)
     }
   ]
 }
+```
 
 ### 추가 가격 (addPrice) 표시
 
@@ -235,37 +257,58 @@ optionType 확인 (COMBINATION / REQUIRED / DEFAULT)
 
 ---
 
+## 🧩 공통 컴포넌트
+
+### Header 컴포넌트
+
+Header는 **`variant`** prop으로 메인/상세 페이지를 구분합니다.
+
+| Prop | 값 | 설명 |
+|------|---|------|
+| `variant` | `'main'` | 메인 페이지: 타이틀, 메뉴, 검색, 장바구니 |
+| `variant` | `'detail'` | 상세 페이지: 뒤로가기, 홈, 검색, 장바구니 |
+
+```tsx
+// 메인 페이지
+<Header title="쇼핑" />
+
+// 상세 페이지
+<Header variant="detail" />
+```
+
+---
+
 ## 📁 프로젝트 구조
 
 ```
 mmtalk/
 ├── app/
 │   ├── (components)/
-│   │   ├── layout/Header/
+│   │   ├── layout/Header/       # 공통 헤더 (variant: main/detail)
 │   │   └── product/
-│   │       ├── ProductCard/
-│   │       └── ProductGrid/
+│   │       ├── ProductCard/     # 상품 카드 (next/image)
+│   │       └── ProductGrid/     # 상품 그리드
 │   ├── (lib)/
-│   │   ├── apollo-provider.tsx
-│   │   └── apollo-client.ts
+│   │   ├── apollo-provider.tsx  # Apollo Provider
+│   │   └── apollo-client.ts     # Apollo Client 설정
 │   ├── products/[id]/
 │   │   ├── page.tsx              # 서버 컴포넌트 (SSR)
 │   │   ├── ProductDetailClient.tsx # 클라이언트 컴포넌트
 │   │   └── page.module.scss
 │   ├── page.tsx                  # 메인 페이지 (서버 컴포넌트)
-│   ├── HomeClient.tsx            # 메인 클라이언트 컴포넌트
+│   ├── HomeClient.tsx            # 메인 클라이언트 (useLazyQuery)
 │   └── globals.scss
 ├── graphql/
 │   └── queries/
-│       ├── getProducts.ts
-│       ├── getProduct.ts
-│       └── getProductOption.ts
+│       ├── getProducts.ts        # 상품 목록 쿼리
+│       ├── getProduct.ts         # 상품 상세 쿼리
+│       └── getProductOption.ts   # 상품 옵션 쿼리
 ├── public/
 │   └── images/                   # 아이콘 SVG 파일
 ├── styles/
-│   ├── _variables.scss
-│   └── _mixins.scss
-└── next.config.mjs               # 이미지 도메인 설정
+│   ├── _variables.scss           # SCSS 변수
+│   └── _mixins.scss              # SCSS 믹스인
+└── next.config.mjs               # Next.js 설정 (이미지 도메인)
 ```
 
 ---
@@ -275,10 +318,34 @@ mmtalk/
 - **Next.js 14**: App Router, SSR, 이미지 최적화
 - **React 18**: 클라이언트 컴포넌트
 - **TypeScript**: 타입 안전성
-- **Apollo Client**: GraphQL 클라이언트, 캐싱
+- **Apollo Client**: GraphQL 클라이언트 (`useLazyQuery`, 캐싱)
 - **GraphQL**: API 쿼리
 - **SCSS Modules**: 컴포넌트별 스타일링
 - **Framer Motion**: 애니메이션
+
+---
+
+## ⚙️ 설정 파일
+
+### next.config.mjs
+
+```javascript
+const nextConfig = {
+  reactStrictMode: false, // 개발 시 중복 렌더링 방지
+  sassOptions: {
+    includePaths: [path.join(process.cwd(), 'styles')],
+  },
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '**.cdn-nhncommerce.com', // 와일드카드
+        pathname: '/**',
+      },
+    ],
+  },
+};
+```
 
 ---
 
@@ -287,6 +354,5 @@ mmtalk/
 | 용도 | 엔드포인트 | 인증 |
 |-----|-----------|-----|
 | GraphQL | `https://assignment.mobile.mmtalk.kr/graphql` | Bearer Token |
-| REST (SSR) | `https://assignment.mobile.mmtalk.kr/api/shopping/products` | Bearer Token |
 
 인증 토큰: `Bearer 2G8QgQ5RCM`

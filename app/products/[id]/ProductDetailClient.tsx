@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { useQuery } from '@apollo/client';
 import { motion, AnimatePresence, useDragControls, PanInfo } from 'framer-motion';
 import { GET_PRODUCT_OPTION, GetProductOptionData, GetProductOptionVariables } from '@/graphql/queries/getProductOption';
+import Header from '@/app/(components)/layout/Header/Header';
 import styles from './page.module.scss';
 
 interface Product {
@@ -269,19 +270,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
     return (
         <div className={styles.container}>
             {/* 헤더 */}
-            <header className={styles.header}>
-                <button className={styles.backButton} onClick={handleBack}>
-                    <img src="/images/ic_back.svg" alt="뒤로가기" width={24} height={24} />
-                </button>
-                <div className={styles.headerRight}>
-                    <button className={styles.iconButton}>
-                        <img src="/images/ic_more.svg" alt="더보기" width={24} height={24} />
-                    </button>
-                    <button className={styles.iconButton}>
-                        <img src="/images/ic_cart.svg" alt="장바구니" width={24} height={24} />
-                    </button>
-                </div>
-            </header>
+            <Header variant="detail" />
 
             {/* 상품 이미지 */}
             <div className={styles.imageSection}>

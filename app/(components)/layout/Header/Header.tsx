@@ -1,27 +1,77 @@
 "use client";
 
 import React from 'react';
+import { useRouter } from 'next/navigation';
 import styles from './Header.module.scss';
 
+type HeaderVariant = 'main' | 'detail';
+
 interface HeaderProps {
+    variant?: HeaderVariant;
     title?: string;
     showBack?: boolean;
     onBackClick?: () => void;
+    transparent?: boolean;
 }
 
 const Header: React.FC<HeaderProps> = ({
+    variant = 'main',
     title = '쇼핑',
     showBack = false,
     onBackClick,
+    transparent = false,
 }) => {
+    const router = useRouter();
+
+    const handleBack = () => {
+        if (onBackClick) {
+            onBackClick();
+        } else {
+            router.back();
+        }
+    };
+
+    const handleHome = () => {
+        router.push('/');
+    };
+
+    // 상세 페이지 헤더
+    if (variant === 'detail') {
+        return (
+            <header className={`${styles.header} ${transparent ? styles.transparent : ''}`}>
+                <div className={styles.left}>
+                    <button className={styles.iconButton} onClick={handleBack}>
+                        <img src="/images/ic_back.svg" alt="뒤로가기" width={24} height={24} />
+                    </button>
+                </div>
+
+                <div className={styles.right}>
+                    {/* 홈 아이콘 */}
+                    <button className={styles.iconButton} onClick={handleHome}>
+                        <img src="/images/ic_home.svg" alt="홈" width={24} height={24} />
+                    </button>
+
+                    {/* 검색 아이콘 */}
+                    <button className={styles.iconButton}>
+                        <img src="/images/ic_search.svg" alt="검색" width={24} height={24} />
+                    </button>
+
+                    {/* 장바구니 아이콘 */}
+                    <button className={styles.iconButton}>
+                        <img src="/images/ic_cart.svg" alt="장바구니" width={24} height={24} />
+                    </button>
+                </div>
+            </header>
+        );
+    }
+
+    // 메인 페이지 헤더 (기본)
     return (
         <header className={styles.header}>
             <div className={styles.left}>
                 {showBack ? (
-                    <button className={styles.iconButton} onClick={onBackClick}>
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                            <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
+                    <button className={styles.iconButton} onClick={handleBack}>
+                        <img src="/images/ic_back.svg" alt="뒤로가기" width={24} height={24} />
                     </button>
                 ) : (
                     <h1 className={styles.title}>{title}</h1>
@@ -40,19 +90,12 @@ const Header: React.FC<HeaderProps> = ({
 
                 {/* 검색 아이콘 */}
                 <button className={styles.iconButton}>
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                        <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="1.5" />
-                        <path d="M16.5 16.5L21 21" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                    </svg>
+                    <img src="/images/ic_search.svg" alt="검색" width={24} height={24} />
                 </button>
 
                 {/* 장바구니 아이콘 */}
                 <button className={styles.iconButton}>
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                        <path d="M6 6H4.5L5.5 8M5.5 8L8.5 16H18.5L21 8H5.5Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                        <circle cx="9" cy="19" r="1.5" stroke="currentColor" strokeWidth="1.5" />
-                        <circle cx="17" cy="19" r="1.5" stroke="currentColor" strokeWidth="1.5" />
-                    </svg>
+                    <img src="/images/ic_cart.svg" alt="장바구니" width={24} height={24} />
                 </button>
             </div>
         </header>
