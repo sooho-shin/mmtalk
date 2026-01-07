@@ -42,6 +42,18 @@ yarn dev
 - 옵션 선택 바텀시트
 - 다양한 옵션 타입 지원
 
+### 3. 장바구니 (Zustand)
+- **추후 확장을 위해** 장바구니 상태 관리 스토어 구현
+- `localStorage` 영속화 (persist)
+- 현재 UI는 미연결, 스토어만 준비됨
+
+```tsx
+// 사용 예시
+import { useCartStore } from '@/stores/cartStore';
+
+const { items, addItem, removeItem, getTotalCount } = useCartStore();
+```
+
 ---
 
 ## 🖼️ 이미지 캐싱 (View Cache)
@@ -305,6 +317,8 @@ mmtalk/
 │       └── getProductOption.ts   # 상품 옵션 쿼리
 ├── public/
 │   └── images/                   # 아이콘 SVG 파일
+├── stores/
+│   └── cartStore.ts              # 장바구니 상태 (Zustand + persist)
 ├── styles/
 │   ├── _variables.scss           # SCSS 변수
 │   └── _mixins.scss              # SCSS 믹스인
@@ -320,6 +334,7 @@ mmtalk/
 - **TypeScript**: 타입 안전성
 - **Apollo Client**: GraphQL 클라이언트 (`useLazyQuery`, 캐싱)
 - **GraphQL**: API 쿼리
+- **Zustand**: 경량 상태 관리 (장바구니)
 - **SCSS Modules**: 컴포넌트별 스타일링
 - **Framer Motion**: 애니메이션
 
