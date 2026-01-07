@@ -1,20 +1,50 @@
 import { Product } from '@/graphql/queries/getProducts';
 import HomeClient from './HomeClient';
 
-// SSR로 초기 상품 데이터 fetch (REST API)
+const GRAPHQL_ENDPOINT = 'https://assignment.mobile.mmtalk.kr/graphql';
+
+// SSR로 초기 상품 데이터 fetch (GraphQL)
 async function getInitialProducts() {
     try {
-        const response = await fetch(
-            'https://assignment.mobile.mmtalk.kr/api/shopping/products?limit=20&page=1',
-            {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'authorization': 'Bearer 2G8QgQ5RCM',
-                },
-                cache: 'no-store',
-            }
-        );
+        const response = await fetch(GRAPHQL_ENDPOINT, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'authorization': 'Bearer 2G8QgQ5RCM',
+            },
+            body: JSON.stringify({
+                query: `
+                    query GetProducts($limit: Int = 20, $page: Int = 1) {
+                        products(limit: $limit, page: $page) {
+                            products {
+                                productNo
+                                productName
+                                brandName
+                                salePrice
+                                immediateDiscountAmt
+                                immediateDiscountUnitType
+                                listImageUrls
+                                imageUrls
+                                reviewRating
+                                totalReviewCount
+                                isSoldOut
+                                likeCount
+                                saleCnt
+                                saleStatusType
+                            }
+                            meta {
+                                totalCount
+                                page
+                                limit
+                                totalPage
+                            }
+                        }
+                    }
+                `,
+                variables: { limit: 20, page: 1 },
+            }),
+            cache: 'no-store',
+        });
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -22,14 +52,18 @@ async function getInitialProducts() {
 
         const result = await response.json();
 
-        if (!result.products) {
+        if (result.errors) {
+            console.error('GraphQL errors:', result.errors);
+            throw new Error('GraphQL error');
+        }
+
+        if (!result.data?.products) {
             throw new Error('No products data');
         }
 
-        return result;
+        return result.data.products;
     } catch (error) {
         console.error('Failed to fetch products:', error);
-        // 빈 데이터 반환
         return {
             products: [],
             meta: {

@@ -49,62 +49,115 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
     );
 
     const optionInfo = optionData?.productOption;
+    const optionType = optionInfo?.type; // COMBINATION, REQUIRED 등
     const labels = optionInfo?.labels || [];
     const multiLevelOptions = optionInfo?.multiLevelOptions || [];
+    const flatOptions = optionInfo?.flatOptions || [];
 
-    // Size 옵션 목록
-    const sizeOptions = useMemo(() => {
-        return multiLevelOptions.map(opt => opt.value);
-    }, [multiLevelOptions]);
+    // children이 있는지 확인 (2단계 옵션인지)
+    const hasChildren = multiLevelOptions.some(opt => opt.children && opt.children.length > 0);
 
-    // 선택된 Size에 따른 Color 옵션 목록
-    const colorOptions = useMemo(() => {
-        if (!selectedSize) {
-            // 모든 색상 옵션 표시 (중복 제거)
-            const allColors = new Set<string>();
-            multiLevelOptions.forEach(sizeOpt => {
-                sizeOpt.children?.forEach(colorOpt => {
-                    allColors.add(colorOpt.value);
-                });
-            });
-            return Array.from(allColors);
+    // 첫 번째 드롭다운 옵션 목록
+    const firstOptions = useMemo(() => {
+        if (optionType === 'COMBINATION') {
+            if (hasChildren) {
+                // 2단계: multiLevelOptions의 value가 첫 번째 단계
+                return multiLevelOptions.map(opt => opt.value).filter(v => v);
+            } else {
+                // 1단계: multiLevelOptions의 각 value가 개별 옵션
+                return multiLevelOptions.map(opt => opt.value).filter(v => v);
+            }
+        } else {
+            // REQUIRED 등: 필수옵션 그룹의 children
+            const requiredGroup = multiLevelOptions.find(opt => opt.isRequiredOption);
+            return requiredGroup?.children?.map(c => c.value) || [];
         }
-        const sizeOpt = multiLevelOptions.find(opt => opt.value === selectedSize);
-        return sizeOpt?.children?.map(c => c.value) || [];
-    }, [selectedSize, multiLevelOptions]);
+    }, [optionType, multiLevelOptions, hasChildren]);
 
-    // 선택된 Size + Color 조합의 옵션 정보 찾기
-    const findOptionBySelection = (size: string, color: string) => {
-        const sizeOpt = multiLevelOptions.find(opt => opt.value === size);
-        return sizeOpt?.children?.find(c => c.value === color);
+    // 두 번째 드롭다운 옵션 목록
+    const secondOptions = useMemo(() => {
+        if (optionType === 'COMBINATION') {
+            if (!hasChildren) {
+                // 1단계 옵션: 두 번째 드롭다운 없음
+                return [];
+            }
+            // 2단계: 선택된 첫 번째 옵션에 따른 두 번째 옵션 목록
+            if (!selectedSize) {
+                const allColors = new Set<string>();
+                multiLevelOptions.forEach(sizeOpt => {
+                    sizeOpt.children?.forEach(colorOpt => {
+                        allColors.add(colorOpt.value);
+                    });
+                });
+                return Array.from(allColors);
+            }
+            const sizeOpt = multiLevelOptions.find(opt => opt.value === selectedSize);
+            return sizeOpt?.children?.map(c => c.value) || [];
+        } else {
+            // REQUIRED 등: 선택옵션 그룹
+            const optionalGroup = multiLevelOptions.find(opt => !opt.isRequiredOption);
+            return optionalGroup?.children?.map(c => c.value) || [];
+        }
+    }, [optionType, selectedSize, multiLevelOptions, hasChildren]);
+
+    // 선택된 옵션 정보 찾기 (flatOptions에서 검색)
+    const findOptionBySelection = (first: string, second?: string) => {
+        if (optionType === 'COMBINATION') {
+            if (hasChildren && second) {
+                // 2단계: children에서 찾기
+                const sizeOpt = multiLevelOptions.find(opt => opt.value === first);
+                return sizeOpt?.children?.find(c => c.value === second);
+            } else {
+                // 1단계: flatOptions에서 value로 찾기
+                return flatOptions.find(opt => opt.value === first);
+            }
+        } else {
+            // REQUIRED: flatOptions에서 value로 찾기
+            return flatOptions.find(opt => opt.value === first);
+        }
     };
 
     const handleBack = () => {
         router.back();
     };
 
-    const handleSizeSelect = (size: string) => {
-        setSelectedSize(size);
+    const handleFirstSelect = (value: string) => {
+        setSelectedSize(value);
         setSizeDropdownOpen(false);
 
-        // Size와 Color 모두 선택되면 옵션 추가
-        if (selectedColor) {
-            addOption(size, selectedColor);
+        if (optionType === 'COMBINATION') {
+            if (hasChildren) {
+                // 2단계: 두 번째 옵션도 선택되면 추가
+                if (selectedColor) {
+                    addOption(value, selectedColor);
+                }
+            } else {
+                // 1단계: 첫 번째 옵션 선택 시 바로 추가
+                addOption(value);
+            }
+        } else {
+            // REQUIRED: 첫 번째 옵션 선택 시 바로 추가
+            addOption(value);
         }
     };
 
-    const handleColorSelect = (color: string) => {
-        setSelectedColor(color);
+    const handleSecondSelect = (value: string) => {
+        setSelectedColor(value);
         setColorDropdownOpen(false);
 
-        // Size와 Color 모두 선택되면 옵션 추가
-        if (selectedSize) {
-            addOption(selectedSize, color);
+        if (optionType === 'COMBINATION') {
+            // COMBINATION: 첫 번째 옵션도 선택되면 추가
+            if (selectedSize) {
+                addOption(selectedSize, value);
+            }
+        } else {
+            // REQUIRED: 선택옵션 선택 시 바로 추가
+            addOption(value);
         }
     };
 
-    const addOption = (size: string, color: string) => {
-        const option = findOptionBySelection(size, color);
+    const addOption = (first: string, second?: string) => {
+        const option = findOptionBySelection(first, second);
         if (!option) return;
 
         // 이미 선택된 옵션인지 확인
@@ -120,11 +173,12 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
             );
         } else {
             // 새로 추가
+            const displayName = second ? `${first} / ${second}` : first;
             setSelectedOptions(prev => [
                 ...prev,
                 {
                     optionNo: option.optionNo,
-                    displayName: `${size} / ${color}`,
+                    displayName,
                     price: option.buyPrice,
                     quantity: 1,
                 }
@@ -295,13 +349,13 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                                                 exit={{ height: 0, opacity: 0 }}
                                                 transition={{ duration: 0.2, ease: 'easeInOut' }}
                                             >
-                                                {sizeOptions.map((size) => (
+                                                {firstOptions.map((option: string) => (
                                                     <button
-                                                        key={size}
+                                                        key={option}
                                                         className={styles.dropdownItem}
-                                                        onClick={() => handleSizeSelect(size)}
+                                                        onClick={() => handleFirstSelect(option)}
                                                     >
-                                                        {size}
+                                                        {option}
                                                     </button>
                                                 ))}
                                             </motion.div>
@@ -309,50 +363,52 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                                     </AnimatePresence>
                                 </div>
 
-                                {/* Color 드롭다운 */}
-                                <div className={styles.dropdownWrapper}>
-                                    <button
-                                        className={`${styles.dropdownTrigger} ${colorDropdownOpen ? styles.open : ''}`}
-                                        onClick={() => {
-                                            setColorDropdownOpen(!colorDropdownOpen);
-                                            setSizeDropdownOpen(false);
-                                        }}
-                                    >
-                                        <span>{selectedColor || `${labels[1] || '옵션'}`}</span>
-                                        <motion.svg
-                                            width="12"
-                                            height="12"
-                                            viewBox="0 0 12 12"
-                                            fill="none"
-                                            animate={{ rotate: colorDropdownOpen ? 180 : 0 }}
-                                            transition={{ duration: 0.2 }}
+                                {/* 두 번째 드롭다운 (선택옵션이 있을 때만) */}
+                                {secondOptions.length > 0 && (
+                                    <div className={styles.dropdownWrapper}>
+                                        <button
+                                            className={`${styles.dropdownTrigger} ${colorDropdownOpen ? styles.open : ''}`}
+                                            onClick={() => {
+                                                setColorDropdownOpen(!colorDropdownOpen);
+                                                setSizeDropdownOpen(false);
+                                            }}
                                         >
-                                            <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                        </motion.svg>
-                                    </button>
-
-                                    <AnimatePresence>
-                                        {colorDropdownOpen && (
-                                            <motion.div
-                                                className={styles.dropdownMenu}
-                                                initial={{ height: 0, opacity: 0 }}
-                                                animate={{ height: 'auto', opacity: 1 }}
-                                                exit={{ height: 0, opacity: 0 }}
-                                                transition={{ duration: 0.2, ease: 'easeInOut' }}
+                                            <span>{selectedColor || `${labels[1] || '옵션'}`}</span>
+                                            <motion.svg
+                                                width="12"
+                                                height="12"
+                                                viewBox="0 0 12 12"
+                                                fill="none"
+                                                animate={{ rotate: colorDropdownOpen ? 180 : 0 }}
+                                                transition={{ duration: 0.2 }}
                                             >
-                                                {colorOptions.map((color) => (
-                                                    <button
-                                                        key={color}
-                                                        className={styles.dropdownItem}
-                                                        onClick={() => handleColorSelect(color)}
-                                                    >
-                                                        {color}
-                                                    </button>
-                                                ))}
-                                            </motion.div>
-                                        )}
-                                    </AnimatePresence>
-                                </div>
+                                                <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                            </motion.svg>
+                                        </button>
+
+                                        <AnimatePresence>
+                                            {colorDropdownOpen && (
+                                                <motion.div
+                                                    className={styles.dropdownMenu}
+                                                    initial={{ height: 0, opacity: 0 }}
+                                                    animate={{ height: 'auto', opacity: 1 }}
+                                                    exit={{ height: 0, opacity: 0 }}
+                                                    transition={{ duration: 0.2, ease: 'easeInOut' }}
+                                                >
+                                                    {secondOptions.map((option: string) => (
+                                                        <button
+                                                            key={option}
+                                                            className={styles.dropdownItem}
+                                                            onClick={() => handleSecondSelect(option)}
+                                                        >
+                                                            {option}
+                                                        </button>
+                                                    ))}
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
+                                    </div>
+                                )}
                             </div>
 
                             {/* 선택된 옵션들 */}
