@@ -159,6 +159,92 @@ app/HomeClient.tsx (클라이언트 컴포넌트)
 
 ## 🧩 공통 컴포넌트
 
+공통 컴포넌트는 `app/(components)/common/` 디렉토리에서 관리됩니다.
+
+### 왜 공통 컴포넌트로 분리했나요?
+
+| 컴포넌트 | 분리 이유 |
+|---------|----------|
+| **Badge** | 무료배송, 쿠폰할인 등 다양한 배지가 여러 곳에서 사용됨 |
+| **Rating** | 별점/리뷰/찜수가 상품 카드, 상세 페이지에서 중복 |
+| **Price** | 할인율+가격 표시가 상품 카드, 상세 페이지에서 동일 패턴 |
+| **Dropdown** | 옵션 선택 드롭다운이 확장될 가능성 높음 |
+| **Button** | 버튼 스타일 통일 및 일관성 유지 |
+
+### 사용 방법
+
+```tsx
+import { Badge, Rating, Price, Dropdown, Button } from '@/app/(components)/common';
+
+// Badge
+<Badge variant="delivery">무료배송</Badge>
+<Badge variant="coupon">쿠폰할인</Badge>
+
+// Rating
+<Rating rating={4.8} reviewCount={1234} likeCount={567} />
+<Rating rating={4.8} reviewCount={86} showReviewLabel /> // 상세 페이지용
+
+// Price
+<Price price={34000} discount={34} size="sm" />
+<Price price={104000} originalPrice={240000} discount={38} size="lg" showUnit />
+
+// Dropdown
+<Dropdown
+    options={[{ value: 'M', label: 'M' }]}
+    value={selectedSize}
+    placeholder="사이즈 선택"
+    isOpen={isOpen}
+    onToggle={() => setIsOpen(!isOpen)}
+    onSelect={(opt) => setSelectedSize(opt.value)}
+/>
+
+// Button
+<Button variant="primary" size="lg" fullWidth>바로 구매하기</Button>
+```
+
+### 컴포넌트 상세
+
+#### Badge
+| Prop | 타입 | 기본값 | 설명 |
+|------|-----|-------|------|
+| `children` | `ReactNode` | - | 배지 텍스트 |
+| `variant` | `'delivery' \| 'coupon' \| 'default'` | `'default'` | 배지 스타일 |
+
+#### Rating
+| Prop | 타입 | 기본값 | 설명 |
+|------|-----|-------|------|
+| `rating` | `number` | - | 별점 점수 |
+| `reviewCount` | `number` | - | 리뷰 개수 |
+| `likeCount` | `number` | - | 찜 개수 |
+| `showReviewLabel` | `boolean` | `false` | "리뷰 N개" 형식 표시 |
+
+#### Price
+| Prop | 타입 | 기본값 | 설명 |
+|------|-----|-------|------|
+| `price` | `number` | - | 현재 가격 |
+| `originalPrice` | `number` | - | 원가 (취소선) |
+| `discount` | `number` | - | 할인율 (%) |
+| `size` | `'sm' \| 'md' \| 'lg'` | `'md'` | 크기 |
+| `showUnit` | `boolean` | `false` | "원" 표시 여부 |
+
+#### Dropdown
+| Prop | 타입 | 기본값 | 설명 |
+|------|-----|-------|------|
+| `options` | `DropdownOption[]` | - | 옵션 목록 |
+| `value` | `string \| null` | - | 선택된 값 |
+| `placeholder` | `string` | `'옵션을 선택하세요'` | 플레이스홀더 |
+| `isOpen` | `boolean` | - | 열림 상태 |
+| `disabled` | `boolean` | `false` | 비활성화 |
+| `onToggle` | `() => void` | - | 토글 핸들러 |
+| `onSelect` | `(option) => void` | - | 선택 핸들러 |
+
+#### Button
+| Prop | 타입 | 기본값 | 설명 |
+|------|-----|-------|------|
+| `variant` | `'primary' \| 'secondary' \| 'ghost'` | `'primary'` | 버튼 스타일 |
+| `size` | `'sm' \| 'md' \| 'lg'` | `'md'` | 크기 |
+| `fullWidth` | `boolean` | `false` | 전체 너비 |
+
 ### Header 컴포넌트
 
 | Prop | 값 | 설명 |
@@ -174,6 +260,7 @@ app/HomeClient.tsx (클라이언트 컴포넌트)
 <Header variant="detail" />
 ```
 
+
 ---
 
 ## 📁 프로젝트 구조
@@ -182,40 +269,38 @@ app/HomeClient.tsx (클라이언트 컴포넌트)
 mmtalk/
 ├── app/
 │   ├── (components)/
-│   │   ├── layout/Header/       # 공통 헤더 (variant: main/detail)
+│   │   ├── common/               # 🆕 공통 컴포넌트
+│   │   │   ├── Badge/            # 배지 (무료배송, 쿠폰할인)
+│   │   │   ├── Rating/           # 별점/리뷰/찜수
+│   │   │   ├── Price/            # 가격 표시
+│   │   │   ├── Dropdown/         # 드롭다운
+│   │   │   ├── Button/           # 버튼
+│   │   │   └── index.ts          # 통합 export
+│   │   ├── layout/Header/        # 공통 헤더
 │   │   └── product/
-│   │       ├── ProductCard/     # 상품 카드 (이미지, 정보, 배지)
-│   │       └── ProductGrid/     # 상품 그리드
+│   │       ├── ProductCard/      # 상품 카드
+│   │       └── ProductGrid/      # 상품 그리드
 │   ├── (lib)/
-│   │   ├── apollo-provider.tsx  # Apollo Provider
-│   │   └── apollo-client.ts     # Apollo Client 설정
+│   │   ├── apollo-provider.tsx   # Apollo Provider
+│   │   └── apollo-client.ts      # Apollo Client 설정
 │   ├── products/[id]/
-│   │   ├── page.tsx              # 서버 컴포넌트 (SSR)
-│   │   ├── ProductDetailClient.tsx # 클라이언트 컴포넌트
+│   │   ├── page.tsx               # 서버 컴포넌트 (SSR)
+│   │   ├── ProductDetailClient.tsx
 │   │   └── page.module.scss
-│   ├── page.tsx                  # 메인 페이지 (서버 컴포넌트)
-│   ├── HomeClient.tsx            # 메인 클라이언트 (useLazyQuery)
+│   ├── page.tsx                   # 메인 페이지
+│   ├── HomeClient.tsx
 │   └── globals.scss
 ├── graphql/
 │   └── queries/
-│       ├── getProducts.ts        # 상품 목록 쿼리
-│       ├── getProduct.ts         # 상품 상세 쿼리
-│       └── getProductOption.ts   # 상품 옵션 쿼리
 ├── public/
-│   └── images/                   # 아이콘 SVG 파일
-│       ├── ic_star.svg           # 별점 아이콘
-│       ├── ic_heart.svg          # 찜 아이콘
-│       ├── ic_like.svg           # 좋아요 아이콘
-│       ├── ic_arrow_down.svg     # 드롭다운 화살표
-│       ├── ic_arrow_right.svg    # 오른쪽 화살표
-│       └── ...
+│   └── images/
 ├── stores/
-│   └── cartStore.ts              # 장바구니 상태 (Zustand + persist)
+│   └── cartStore.ts              # Zustand 장바구니
 ├── styles/
-│   ├── _variables.scss           # SCSS 변수
-│   ├── _mixins.scss              # SCSS 믹스인
-│   └── _reset.scss               # 전역 CSS Reset
-└── next.config.mjs               # Next.js 설정 (이미지 도메인)
+│   ├── _variables.scss
+│   ├── _mixins.scss
+│   └── _reset.scss
+└── next.config.mjs
 ```
 
 ---

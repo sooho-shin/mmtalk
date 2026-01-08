@@ -1,0 +1,87 @@
+@import '../../../../styles/variables';
+@import '../../../../styles/mixins';
+
+.priceWrapper {
+    display: flex;
+    flex-direction: column;
+}
+
+.originalPrice {
+    font-size: $font-size-13;
+    color: $color-gray-500;
+    text-decoration: line-through;
+    margin-bottom: $spacing-2;
+}
+
+.priceRow {
+    @include flex-start;
+    align-items: baseline;
+}
+
+.discount {
+    font-weight: $font-weight-bold;
+    color: $color-red;
+}
+
+.price {
+    font-weight: $font-weight-bold;
+    color: $color-gray-800;
+}
+
+.unit {
+    font-weight: $font-weight-semibold;
+    color: $color-gray-800;
+}
+
+// 사이즈별 스타일
+.sm {
+    .originalPrice {
+        font-size: $font-size-11;
+    }
+
+    .discount {
+        font-size: $font-size-15;
+        margin-right: 2px;
+    }
+
+    .price {
+        font-size: $font-size-15;
+    }
+}
+
+.md {
+    .discount {
+        font-size: $font-size-17;
+        margin-right: 4px;
+    }
+
+    .price {
+        font-size: $font-size-17;
+    }
+
+    .unit {
+        font-size: $font-size-14;
+        margin-left: 2px;
+    }
+}
+
+.lg {
+    .originalPrice {
+        font-size: $font-size-14;
+        margin-bottom: $spacing-2;
+    }
+
+    .discount {
+        font-size: $font-size-22;
+        margin-right: $spacing-4;
+    }
+
+    .price {
+        font-size: $font-size-22;
+        margin-right: $spacing-2;
+    }
+
+    .unit {
+        font-size: $font-size-16;
+    }
+}

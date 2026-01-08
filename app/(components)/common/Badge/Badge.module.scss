@@ -1,0 +1,28 @@
+@import '../../../../styles/variables';
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 4px;
+    border-radius: $radius-2;
+    font-size: $font-size-9;
+    font-weight: $font-weight-semibold;
+}
+
+// 배송 배지 (무료배송)
+.delivery {
+    background: $color-divider;
+    color: $color-gray-600;
+}
+
+// 쿠폰 배지
+.coupon {
+    background: $color-purple-100;
+    color: $color-purple-800;
+}
+
+// 기본 배지
+.default {
+    background: $color-gray-100;
+    color: $color-gray-600;
+}

@@ -1,0 +1,58 @@
+@import '../../../../styles/variables';
+
+.button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: $radius-8;
+    font-weight: $font-weight-semibold;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    &:active:not(:disabled) {
+        opacity: 0.8;
+    }
+}
+
+// Variants
+.primary {
+    background: $color-mint;
+    color: $color-white;
+}
+
+.secondary {
+    background: $color-gray-100;
+    color: $color-gray-700;
+}
+
+.ghost {
+    background: transparent;
+    color: $color-gray-600;
+}
+
+// Sizes
+.sm {
+    padding: 8px 16px;
+    font-size: $font-size-13;
+}
+
+.md {
+    padding: 12px 24px;
+    font-size: $font-size-14;
+}
+
+.lg {
+    padding: 12px 28px;
+    font-size: $font-size-16;
+}
+
+// Full Width
+.fullWidth {
+    width: 100%;
+}
