@@ -29,40 +29,6 @@ yarn dev
 
 ---
 
-## 📱 주요 기능
-
-### 1. 상품 목록 페이지 (메인)
-- 상품 그리드 뷰 (2열)
-- 무한 스크롤 (IntersectionObserver + Apollo `useLazyQuery`)
-- 스크롤 위치 복원 (sessionStorage)
-- SSR 초기 데이터 로딩 (GraphQL)
-
-### 2. 상품 카드 (ProductCard)
-- **이미지**: 1:1 비율, 딤 오버레이, 좋아요 아이콘
-- **정보 영역**: 브랜드명, 상품명 (2줄 말줄임), 할인율 + 가격
-- **배지**: 무료배송, 쿠폰할인
-- **별점/찜수**: 별점 그룹 + 찜수 그룹 (gap 8px)
-
-### 3. 상품 상세 페이지
-- **브랜드 섹션**: 링크 + 화살표 아이콘, border-bottom 구분선
-- **상품 정보**: 상품명, 별점 + 리뷰 개수, 가격
-- **바텀 버튼**: Safe Area 지원 (아이폰)
-- 옵션 선택 바텀시트
-
-### 4. 장바구니 (Zustand)
-- **추후 확장을 위해** 장바구니 상태 관리 스토어 구현
-- `localStorage` 영속화 (persist)
-- 현재 UI는 미연결, 스토어만 준비됨
-
-```tsx
-// 사용 예시
-import { useCartStore } from '@/stores/cartStore';
-
-const { items, addItem, removeItem, getTotalCount } = useCartStore();
-```
-
----
-
 ## 🎨 스타일 시스템
 
 ### CSS 구조
