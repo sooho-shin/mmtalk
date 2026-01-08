@@ -32,17 +32,24 @@ yarn dev
 ## 📱 주요 기능
 
 ### 1. 상품 목록 페이지 (메인)
-- 상품 그리드 뷰
+- 상품 그리드 뷰 (2열)
 - 무한 스크롤 (IntersectionObserver + Apollo `useLazyQuery`)
 - 스크롤 위치 복원 (sessionStorage)
 - SSR 초기 데이터 로딩 (GraphQL)
 
-### 2. 상품 상세 페이지
-- 상품 정보 표시
-- 옵션 선택 바텀시트
-- 다양한 옵션 타입 지원
+### 2. 상품 카드 (ProductCard)
+- **이미지**: 1:1 비율, 딤 오버레이, 좋아요 아이콘
+- **정보 영역**: 브랜드명, 상품명 (2줄 말줄임), 할인율 + 가격
+- **배지**: 무료배송, 쿠폰할인
+- **별점/찜수**: 별점 그룹 + 찜수 그룹 (gap 8px)
 
-### 3. 장바구니 (Zustand)
+### 3. 상품 상세 페이지
+- **브랜드 섹션**: 링크 + 화살표 아이콘, border-bottom 구분선
+- **상품 정보**: 상품명, 별점 + 리뷰 개수, 가격
+- **바텀 버튼**: Safe Area 지원 (아이폰)
+- 옵션 선택 바텀시트
+
+### 4. 장바구니 (Zustand)
 - **추후 확장을 위해** 장바구니 상태 관리 스토어 구현
 - `localStorage` 영속화 (persist)
 - 현재 UI는 미연결, 스토어만 준비됨
@@ -52,6 +59,32 @@ yarn dev
 import { useCartStore } from '@/stores/cartStore';
 
 const { items, addItem, removeItem, getTotalCount } = useCartStore();
+```
+
+---
+
+## 🎨 스타일 시스템
+
+### CSS 구조
+
+| 파일 | 역할 |
+|-----|------|
+| `styles/_variables.scss` | 색상, 폰트, 간격 등 디자인 토큰 |
+| `styles/_mixins.scss` | 재사용 가능한 SCSS 믹스인 |
+| `styles/_reset.scss` | 전역 CSS Reset (버튼, 인풋 등) |
+| `app/globals.scss` | 전역 스타일, Reset 임포트 |
+
+### 주요 색상 변수
+
+```scss
+$color-gray-500: #999;
+$color-gray-600: #666565;
+$color-gray-700: #484848;
+$color-gray-800: #383838;
+$color-mint: #4AC8C0;      // 버튼 색상
+$color-red: #FF5553;       // 할인율
+$color-purple-100: #FBF8FE; // 쿠폰 배지 배경
+$color-purple-800: #A671D6; // 쿠폰 배지 텍스트
 ```
 
 ---
@@ -83,14 +116,6 @@ images: {
 | 상품 카드 | `ProductCard.tsx` | `<Image fill sizes="..." />` |
 | 상품 상세 | `ProductDetailClient.tsx` | `<Image fill priority />` |
 
-#### 3. 이미지 캐싱의 장점
-
-- ✅ **자동 최적화**: WebP 등 최신 포맷으로 자동 변환
-- ✅ **브라우저 캐싱**: 이미지 재방문 시 캐시에서 로드
-- ✅ **Lazy Loading**: 화면에 보이는 이미지만 로드
-- ✅ **Priority Loading**: 중요 이미지 우선 로드
-- ✅ **반응형 크기**: `sizes` 속성으로 뷰포트에 맞는 크기 제공
-
 ---
 
 ## 🔄 SSR (서버 사이드 렌더링)
@@ -98,7 +123,7 @@ images: {
 ### 데이터 페칭 전략
 
 | 페이지 | 초기 데이터 | 추가 데이터 |
-|-------|-----------|-----------|
+|-------|-----------|-----------| 
 | 메인 (상품 목록) | SSR (GraphQL fetch) | Apollo `useLazyQuery` (무한 스크롤) |
 | 상품 상세 | SSR (GraphQL fetch) | Apollo `useQuery` (옵션 데이터) |
 
@@ -115,24 +140,6 @@ app/HomeClient.tsx (클라이언트 컴포넌트)
     ↓ 스크롤 시 useLazyQuery로 추가 페이지 로드
 ```
 
-### 무한 스크롤 구현 (Apollo useLazyQuery)
-
-```tsx
-// useLazyQuery: 호출할 때만 요청 (초기에 요청 안 함)
-const [fetchProducts, { data, loading }] = useLazyQuery(GET_PRODUCTS);
-
-// 중복 호출 방지: lastFetchedPage ref 사용
-const lastFetchedPage = useRef(initialMeta.page);
-
-const handleLoadMore = () => {
-    const nextPage = lastFetchedPage.current + 1;
-    if (isFetching || nextPage > totalPage) return;
-    
-    lastFetchedPage.current = nextPage; // 즉시 업데이트 (중복 방지)
-    fetchProducts({ variables: { page: nextPage, limit: 20 } });
-};
-```
-
 ---
 
 ## 🎯 상품 옵션 선택 로직
@@ -141,139 +148,18 @@ const handleLoadMore = () => {
 
 ### 옵션 타입별 처리
 
-#### 1. `COMBINATION` + 2단계 옵션 (Size → Color)
-
-- **구조**: `multiLevelOptions[].value` = Size, `multiLevelOptions[].children[].value` = Color
-- **동작**: 
-  - 첫 번째 드롭다운: Size 선택
-  - 두 번째 드롭다운: Color 선택
-  - **둘 다 선택해야** 옵션 리스트에 추가
-
-```json
-{
-  "type": "COMBINATION",
-  "multiLevelOptions": [
-    {
-      "value": "M",
-      "children": [
-        { "optionNo": 1, "value": "Black", "buyPrice": 33000 },
-        { "optionNo": 2, "value": "White", "buyPrice": 33000 }
-      ]
-    }
-  ]
-}
-```
-
-#### 2. `COMBINATION` + 1단계 옵션 (Size만)
-
-- **구조**: `multiLevelOptions[].value` = 옵션명, `children = null`
-- **동작**:
-  - 첫 번째 드롭다운만 표시
-  - **선택 즉시** 옵션 리스트에 추가
-  - 가격 정보는 `flatOptions`에서 조회
-
-```json
-{
-  "type": "COMBINATION",
-  "multiLevelOptions": [
-    { "value": "핏유어코어(블랙)_M", "children": null },
-    { "value": "핏유어코어(블랙)_L", "children": null }
-  ],
-  "flatOptions": [
-    { "optionNo": 1, "value": "핏유어코어(블랙)_M", "buyPrice": 33000, "addPrice": 0 }
-  ]
-}
-```
-
-#### 3. `REQUIRED` 타입 (필수옵션 + 선택옵션)
-
-- **구조**: `multiLevelOptions[0].isRequiredOption = true` (필수), `multiLevelOptions[1].isRequiredOption = false` (선택)
-- **동작**:
-  - 첫 번째 드롭다운: 필수옵션 (선택 즉시 추가)
-  - 두 번째 드롭다운: 선택옵션
-  - **필수옵션 미선택 시** 선택옵션 드롭다운 비활성화
-    - 문구: "필수옵션 선택 시 구매 가능합니다"
-    - 배경색: 회색
-    - 클릭 불가
-
-```json
-{
-  "type": "REQUIRED",
-  "multiLevelOptions": [
-    {
-      "isRequiredOption": true,
-      "children": [{ "optionNo": 1, "value": "산후복대 L" }]
-    },
-    {
-      "isRequiredOption": false,
-      "children": [{ "optionNo": 2, "value": "맘바디 여성청결제", "addPrice": -9000 }]
-    }
-  ]
-}
-```
-
-#### 4. `DEFAULT` 타입 (옵션 없는 단일 상품)
-
-- **구조**: 옵션 선택이 필요 없는 단일 상품
-- **동작**:
-  - **드롭다운 표시하지 않음**
-  - 바텀시트 열리면 **자동으로 상품이 선택된 상태**로 표시
-  - **X 버튼(삭제) 숨김** - 삭제 불가
-  - **수량 조절만 가능**
-
-```json
-{
-  "type": "DEFAULT",
-  "flatOptions": [
-    { 
-      "optionNo": 369454663, 
-      "value": "바이엘 엘레뉴 2단계 120정 임산부 영양제", 
-      "buyPrice": 81900 
-    }
-  ]
-}
-```
-
-### 추가 가격 (addPrice) 표시
-
-옵션에 추가 가격이 있는 경우 괄호 안에 표시됩니다:
-
-- 양수: `산후복대 L (+1,000원)`
-- 음수: `맘바디 여성청결제 (-9,000원)`
-- 0원: 표시하지 않음
-
-### 옵션 처리 흐름도
-
-```
-API 응답 수신
-    ↓
-optionType 확인 (COMBINATION / REQUIRED / DEFAULT)
-    ↓
-┌─────────────────────────────────────────┐
-│ DEFAULT                                 │
-│   → 드롭다운 숨김                        │
-│   → 바텀시트 열릴 때 자동 선택           │
-│   → X 버튼 숨김, 수량만 조절             │
-├─────────────────────────────────────────┤
-│ COMBINATION + hasChildren               │
-│   → Size 선택 → Color 선택 → 추가       │
-├─────────────────────────────────────────┤
-│ COMBINATION + !hasChildren              │
-│   → 옵션 선택 → 즉시 추가               │
-├─────────────────────────────────────────┤
-│ REQUIRED                                │
-│   → 필수옵션 선택 → 선택옵션 활성화     │
-│   → 각각 선택 시 즉시 추가              │
-└─────────────────────────────────────────┘
-```
+| 타입 | 설명 |
+|-----|------|
+| `COMBINATION` + 2단계 | Size → Color 순차 선택 |
+| `COMBINATION` + 1단계 | 옵션 선택 즉시 추가 |
+| `REQUIRED` | 필수옵션 + 선택옵션 |
+| `DEFAULT` | 옵션 없음, 자동 선택 |
 
 ---
 
 ## 🧩 공통 컴포넌트
 
 ### Header 컴포넌트
-
-Header는 **`variant`** prop으로 메인/상세 페이지를 구분합니다.
 
 | Prop | 값 | 설명 |
 |------|---|------|
@@ -298,7 +184,7 @@ mmtalk/
 │   ├── (components)/
 │   │   ├── layout/Header/       # 공통 헤더 (variant: main/detail)
 │   │   └── product/
-│   │       ├── ProductCard/     # 상품 카드 (next/image)
+│   │       ├── ProductCard/     # 상품 카드 (이미지, 정보, 배지)
 │   │       └── ProductGrid/     # 상품 그리드
 │   ├── (lib)/
 │   │   ├── apollo-provider.tsx  # Apollo Provider
@@ -317,11 +203,18 @@ mmtalk/
 │       └── getProductOption.ts   # 상품 옵션 쿼리
 ├── public/
 │   └── images/                   # 아이콘 SVG 파일
+│       ├── ic_star.svg           # 별점 아이콘
+│       ├── ic_heart.svg          # 찜 아이콘
+│       ├── ic_like.svg           # 좋아요 아이콘
+│       ├── ic_arrow_down.svg     # 드롭다운 화살표
+│       ├── ic_arrow_right.svg    # 오른쪽 화살표
+│       └── ...
 ├── stores/
 │   └── cartStore.ts              # 장바구니 상태 (Zustand + persist)
 ├── styles/
 │   ├── _variables.scss           # SCSS 변수
-│   └── _mixins.scss              # SCSS 믹스인
+│   ├── _mixins.scss              # SCSS 믹스인
+│   └── _reset.scss               # 전역 CSS Reset
 └── next.config.mjs               # Next.js 설정 (이미지 도메인)
 ```
 
@@ -334,7 +227,7 @@ mmtalk/
 - **TypeScript**: 타입 안전성
 - **Apollo Client**: GraphQL 클라이언트 (`useLazyQuery`, 캐싱)
 - **GraphQL**: API 쿼리
-- **Zustand**: 경량 상태 관리 (장바구니)
+- **Zustand**: 경량 상태 관리 (장바구니, localStorage persist)
 - **SCSS Modules**: 컴포넌트별 스타일링
 - **Framer Motion**: 애니메이션
 
@@ -371,3 +264,4 @@ const nextConfig = {
 | GraphQL | `https://assignment.mobile.mmtalk.kr/graphql` | Bearer Token |
 
 인증 토큰: `Bearer 2G8QgQ5RCM`
+
