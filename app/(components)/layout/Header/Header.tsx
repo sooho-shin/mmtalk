@@ -81,11 +81,7 @@ const Header: React.FC<HeaderProps> = ({
             <div className={styles.right}>
                 {/* 메뉴 아이콘 */}
                 <button className={styles.iconButton}>
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                        <path d="M3 6H21" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                        <path d="M3 12H21" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                        <path d="M3 18H21" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                    </svg>
+                    <img src="/images/ic_menu.svg" alt="메뉴" width={24} height={24} />
                 </button>
 
                 {/* 검색 아이콘 */}

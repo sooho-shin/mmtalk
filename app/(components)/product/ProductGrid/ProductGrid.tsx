@@ -13,6 +13,7 @@ interface Product {
     imageUrl: string;
     rating?: number;
     reviewCount?: number;
+    likeCount?: number;
     discount?: number;
     tags?: string[];
     deliveryInfo?: string;

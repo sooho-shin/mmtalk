@@ -284,17 +284,29 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                 />
             </div>
 
-            {/* 상품 정보 */}
+            {/* 브랜드 섹션 */}
+            <div className={styles.brandSection}>
+                <a href="#" className={styles.brandLink}>
+                    <span>{product.brandName}</span>
+                    <Image src="/images/ic_arrow_right.svg" alt=">" width={12} height={12} />
+                </a>
+            </div>
+
+            {/* 상품 정보 섹션 */}
             <div className={styles.infoSection}>
-                <span className={styles.brand}>{product.brandName}</span>
+                {/* 상품명 */}
                 <h1 className={styles.productName}>{product.productName}</h1>
 
+                {/* 별점 및 리뷰 */}
                 <div className={styles.ratingRow}>
-                    <Image src="/images/ic_star.svg" alt="별점" width={12} height={12} />
-                    <span className={styles.rating}>{product.reviewRating}</span>
-                    <span className={styles.reviewCount}>({product.totalReviewCount})</span>
+                    <div className={styles.ratingGroup}>
+                        <Image src="/images/ic_star_y.svg" alt="별점" width={16} height={16} />
+                        <span className={styles.rating}>{product.reviewRating}</span>
+                    </div>
+                    <span className={styles.reviewLabel}>리뷰 {product.totalReviewCount.toLocaleString()}개</span>
                 </div>
 
+                {/* 가격 정보 */}
                 <div className={styles.priceSection}>
                     {discountPercent > 0 && (
                         <span className={styles.originalPrice}>{product.salePrice.toLocaleString()}원</span>
@@ -303,7 +315,8 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                         {discountPercent > 0 && (
                             <span className={styles.discount}>{discountPercent}%</span>
                         )}
-                        <span className={styles.price}>{finalPrice.toLocaleString()}원</span>
+                        <span className={styles.price}>{finalPrice.toLocaleString()}</span>
+                        <span className={styles.priceUnit}>원</span>
                     </div>
                 </div>
             </div>
@@ -368,16 +381,13 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                                             }}
                                         >
                                             <span>{selectedSize || `${labels[0] || '옵션'}`}</span>
-                                            <motion.svg
-                                                width="12"
-                                                height="12"
-                                                viewBox="0 0 12 12"
-                                                fill="none"
-                                                animate={{ rotate: sizeDropdownOpen ? 180 : 0 }}
-                                                transition={{ duration: 0.2 }}
-                                            >
-                                                <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                            </motion.svg>
+                                            <Image
+                                                src="/images/ic_arrow_down.svg"
+                                                alt="화살표"
+                                                width={16}
+                                                height={16}
+                                                className={`${styles.dropdownIcon} ${sizeDropdownOpen ? styles.rotated : ''}`}
+                                            />
                                         </button>
 
                                         <AnimatePresence>
@@ -425,16 +435,13 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                                                         ? '필수옵션 선택 시 구매 가능합니다'
                                                         : (selectedColor || `${labels[1] || '옵션'}`)}
                                                 </span>
-                                                <motion.svg
-                                                    width="12"
-                                                    height="12"
-                                                    viewBox="0 0 12 12"
-                                                    fill="none"
-                                                    animate={{ rotate: colorDropdownOpen ? 180 : 0 }}
-                                                    transition={{ duration: 0.2 }}
-                                                >
-                                                    <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                </motion.svg>
+                                                <Image
+                                                    src="/images/ic_arrow_down.svg"
+                                                    alt="화살표"
+                                                    width={16}
+                                                    height={16}
+                                                    className={`${styles.dropdownIcon} ${colorDropdownOpen ? styles.rotated : ''}`}
+                                                />
                                             </button>
 
                                             <AnimatePresence>
@@ -487,14 +494,14 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                                                 className={styles.quantityButton}
                                                 onClick={() => handleQuantityChange(option.optionNo, -1)}
                                             >
-                                                -
+                                                <img src="/images/ic_minus.svg" alt="빼기" />
                                             </button>
                                             <span className={styles.quantityValue}>{option.quantity}</span>
                                             <button
                                                 className={styles.quantityButton}
                                                 onClick={() => handleQuantityChange(option.optionNo, 1)}
                                             >
-                                                +
+                                                <img src="/images/ic_plus.svg" alt="더하기" />
                                             </button>
                                         </div>
                                         <span className={styles.optionPrice}>{(option.price * option.quantity).toLocaleString()}원</span>

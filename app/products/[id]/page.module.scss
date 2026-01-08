@@ -54,7 +54,6 @@
 }
 
 .backButton {
-    @include button-reset;
     @include flex-center;
     width: 24px;
     height: 24px;
@@ -67,7 +66,6 @@
 }
 
 .iconButton {
-    @include button-reset;
     @include flex-center;
     width: 24px;
     height: 24px;
@@ -88,72 +86,103 @@
     object-fit: cover;
 }
 
-// 상품 정보
-.infoSection {
-    padding: $spacing-16;
-    padding-bottom: 100px;
+// 브랜드 섹션
+.brandSection {
+    padding: 15px $spacing-20;
     background-color: $color-background;
+    border-bottom: 1px solid $color-divider;
 }
 
-.brand {
-    display: block;
-    font-size: $font-size-12;
-    color: $color-label-tertiary;
-    margin-bottom: $spacing-4;
+// 브랜드 링크
+.brandLink {
+    @include flex-start;
+    align-items: center;
+    gap: 2px;
+    text-decoration: none;
+    color: $color-gray-550;
+    font-size: $font-size-13;
+    font-weight: $font-weight-semibold;
+
+    img {
+        opacity: 0.6;
+    }
+}
+
+// 상품 정보
+.infoSection {
+    padding: $spacing-20;
+    padding-bottom: 24px;
+    background-color: $color-background;
+    border-bottom: 1px solid $color-divider;
 }
 
 .productName {
-    margin: 0 0 $spacing-8;
-    font-size: $font-size-15;
-    font-weight: $font-weight-regular;
-    color: $color-label-primary;
-    line-height: 1.4;
+    margin: 0 0 $spacing-6;
+    font-size: $font-size-16;
+    font-weight: $font-weight-semibold;
+    color: $color-gray-800;
+    line-height: 1.5;
 }
 
 .ratingRow {
     @include flex-start;
-    gap: $spacing-4;
-    margin-bottom: $spacing-16;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: $spacing-20;
+}
+
+.ratingGroup {
+    @include flex-start;
+    align-items: center;
+    gap: 2px;
 }
 
 .rating {
-    font-size: $font-size-12;
-    font-weight: $font-weight-medium;
-    color: $color-label-secondary;
+    font-size: $font-size-13;
+    font-weight: $font-weight-semibold;
+    color: $color-gray-700;
 }
 
-.reviewCount {
+.reviewLabel {
     font-size: $font-size-12;
-    color: $color-label-tertiary;
+    font-weight: $font-weight-semibold;
+    color: $color-gray-500;
+    text-decoration: underline;
 }
 
-.priceSection {
-    margin-top: $spacing-8;
-}
 
 .originalPrice {
     display: block;
-    font-size: $font-size-12;
-    color: $color-label-tertiary;
+    font-size: $font-size-14;
+    color: $color-gray-500;
     text-decoration: line-through;
-    margin-bottom: $spacing-4;
+    margin-bottom: $spacing-2;
 }
 
 .priceRow {
     @include flex-start;
-    gap: $spacing-6;
+    align-items: baseline;
+
 }
 
 .discount {
-    font-size: $font-size-20;
+    font-size: $font-size-22;
     font-weight: $font-weight-bold;
     color: $color-red;
+    margin-right: $spacing-4;
 }
 
 .price {
-    font-size: $font-size-20;
+    font-size: $font-size-22;
     font-weight: $font-weight-bold;
-    color: $color-label-primary;
+    color: $color-gray-800;
+    margin-right: $spacing-2;
+}
+
+.priceUnit {
+    font-size: $font-size-16;
+    font-weight: $font-weight-semibold;
+    color: $color-gray-800;
 }
 
 // 하단 버튼
@@ -164,21 +193,21 @@
     transform: translateX(-50%);
     width: 100%;
     max-width: $screen-width;
-    padding: $spacing-12 $spacing-16;
-    padding-bottom: $spacing-24;
+    padding: $spacing-10 $spacing-20;
+    padding-bottom: calc($spacing-24 + env(safe-area-inset-bottom, 0px));
     background-color: $color-background;
     border-top: 1px solid $color-gray-200;
+
 }
 
 .buyButton {
-    @include button-reset;
     width: 100%;
-    height: 52px;
-    background-color: #00C7BE;
+    padding: 12px 28px;
     color: $color-white;
     font-size: $font-size-16;
     font-weight: $font-weight-semibold;
     border-radius: $radius-8;
+    background: $color-mint;
 }
 
 // 옵션 선택 바텀시트
@@ -204,7 +233,7 @@
     overflow-y: auto;
     background-color: $color-background;
     border-radius: $radius-12 $radius-12 0 0;
-    padding: $spacing-12 $spacing-16 $spacing-24;
+    padding: $spacing-12 $spacing-20 $spacing-24;
     z-index: 101;
 }
 
@@ -212,7 +241,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: $spacing-8 0 $spacing-16;
+    padding-bottom: $spacing-20;
     cursor: grab;
 
     &:active {
@@ -232,7 +261,7 @@
     display: flex;
     flex-direction: column;
     gap: $spacing-8;
-    margin-bottom: $spacing-16;
+    margin-bottom: $spacing-8;
 }
 
 .optionLabel {
@@ -256,54 +285,55 @@
 }
 
 .dropdownTrigger {
-    @include button-reset;
     @include flex-between;
     width: 100%;
     height: 48px;
     padding: 0 $spacing-16;
-    border: 1px solid $color-gray-300;
+    border: 1px solid $color-gray-200;
     border-radius: $radius-8;
-    font-size: $font-size-14;
-    color: $color-label-tertiary;
+    font-size: $font-size-15;
+    color: $color-gray-500;
     background-color: $color-background;
 
-    svg {
-        transition: transform 0.2s ease;
-    }
-
     &.open {
-        border-color: $color-label-primary;
+        border-color: $color-gray-400;
+        border-bottom-color: $color-gray-200;
         border-radius: $radius-8 $radius-8 0 0;
-
-        svg {
-            transform: rotate(180deg);
-        }
-    }
-
-    &.disabled {
-        background-color: $color-gray-100;
-        color: $color-gray-400;
-        cursor: not-allowed;
-        border-color: $color-gray-200;
     }
 }
 
+// 드롭다운 아이콘
+.dropdownIcon {
+    transition: transform 0.2s ease;
+
+    &.rotated {
+        transform: rotate(180deg);
+    }
+}
+
+// disabled 상태
+.disabled {
+    background-color: $color-gray-100;
+    color: $color-gray-400;
+    cursor: not-allowed;
+    border-color: $color-gray-200;
+}
+
 .dropdownMenu {
-    background-color: $color-background;
-    border: 1px solid $color-label-primary;
+    background-color: $color-gray-100;
+    border: 1px solid $color-gray-400;
     border-top: none;
     border-radius: 0 0 $radius-8 $radius-8;
     overflow: hidden;
 }
 
 .dropdownItem {
-    @include button-reset;
     width: 100%;
     padding: $spacing-12 $spacing-16;
     text-align: left;
-    font-size: $font-size-14;
-    color: $color-label-primary;
-    border-bottom: 1px solid $color-gray-100;
+    font-size: $font-size-15;
+    color: $color-gray-800;
+    border-bottom: 1px solid $color-divider;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -321,24 +351,23 @@
 .selectedOption {
     background-color: $color-gray-100;
     border-radius: $radius-8;
-    padding: $spacing-12;
+    padding: $spacing-12 $spacing-16;
     margin-bottom: $spacing-8;
 }
 
 .optionInfo {
     @include flex-between;
-    margin-bottom: $spacing-8;
+    margin-bottom: $spacing-12;
 }
 
 .optionName {
-    font-size: $font-size-13;
-    color: $color-label-primary;
+    font-size: $font-size-14;
+    color: $color-gray-800;
     flex: 1;
     padding-right: $spacing-8;
 }
 
 .removeButton {
-    @include button-reset;
     @include flex-center;
     width: 20px;
     height: 20px;
@@ -357,16 +386,18 @@
 }
 
 .quantityButton {
-    @include button-reset;
     @include flex-center;
     width: 32px;
     height: 32px;
-    font-size: $font-size-16;
-    color: $color-label-primary;
     background-color: $color-background;
 
     &:hover {
         background-color: $color-gray-100;
+    }
+
+    >img {
+        width: 16px;
+        height: 16px;
     }
 }
 
@@ -374,8 +405,8 @@
     width: 40px;
     text-align: center;
     font-size: $font-size-14;
-    font-weight: $font-weight-medium;
-    color: $color-label-primary;
+    font-weight: $font-weight-semibold;
+    color: $color-gray-800;
     border-left: 1px solid $color-gray-300;
     border-right: 1px solid $color-gray-300;
     height: 32px;
@@ -384,21 +415,22 @@
 }
 
 .optionPrice {
-    font-size: $font-size-14;
+    font-size: $font-size-16;
     font-weight: $font-weight-bold;
-    color: $color-label-primary;
+    color: $color-gray-800;
 }
 
 .totalSection {
     @include flex-between;
     align-items: flex-start;
-    padding: $spacing-20 0;
-    margin-top: $spacing-16;
+    padding: $spacing-16 0;
+
 }
 
 .totalLabel {
     font-size: $font-size-14;
-    color: $color-label-secondary;
+    color: $color-gray-800;
+    font-weight: $font-weight-semibold;
 }
 
 .totalPriceWrapper {
@@ -407,18 +439,17 @@
 
 .totalPrice {
     display: block;
-    font-size: $font-size-17;
+    font-size: $font-size-18;
     font-weight: $font-weight-bold;
     color: $color-red;
 }
 
 .deliveryNote {
-    font-size: $font-size-12;
-    color: $color-label-tertiary;
+    font-size: $font-size-13;
+    color: $color-gray-600;
 }
 
 .confirmButton {
-    @include button-reset;
     width: 100%;
     height: 52px;
     background-color: #00C7BE;

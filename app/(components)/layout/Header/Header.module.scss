@@ -6,7 +6,7 @@
     position: sticky;
     top: 0;
     height: $header-height;
-    padding: 0 $spacing-16;
+    padding: 14px 20px;
     background-color: $color-background;
     z-index: 50;
 
@@ -21,9 +21,9 @@
 
 .title {
     margin: 0;
-    font-size: $font-size-17;
+    font-size: $font-size-20;
     font-weight: $font-weight-semibold;
-    color: $color-label-primary;
+    color: $color-gray-800;
 }
 
 .right {
@@ -32,9 +32,7 @@
 }
 
 .iconButton {
-    @include button-reset;
     @include flex-center;
     width: 24px;
     height: 24px;
-    color: $color-label-primary;
 }

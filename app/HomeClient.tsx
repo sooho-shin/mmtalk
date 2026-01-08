@@ -30,6 +30,7 @@ interface TransformedProduct {
     imageUrl: string;
     rating: number;
     reviewCount: number;
+    likeCount: number;
     discount?: number;
 }
 
@@ -90,6 +91,7 @@ export default function HomeClient({ initialProducts, initialMeta }: HomeClientP
             : product.listImageUrls[0],
         rating: product.reviewRating,
         reviewCount: product.totalReviewCount,
+        likeCount: product.likeCount,
         discount: product.immediateDiscountAmt > 0
             ? Math.round((product.immediateDiscountAmt / product.salePrice) * 100)
             : undefined,

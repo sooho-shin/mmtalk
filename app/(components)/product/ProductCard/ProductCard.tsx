@@ -15,6 +15,7 @@ interface ProductCardProps {
     imageUrl: string;
     rating?: number;
     reviewCount?: number;
+    likeCount?: number;
     discount?: number;
     tags?: string[];
     deliveryInfo?: string;
@@ -29,6 +30,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
     imageUrl,
     rating,
     reviewCount,
+    likeCount,
     discount,
     tags = [],
     deliveryInfo,
@@ -38,11 +40,9 @@ const ProductCard: React.FC<ProductCardProps> = ({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3 }}
-            whileHover={{ y: -4 }}
-            whileTap={{ scale: 0.98 }}
         >
             <Link href={`/products/${id}`} className={styles.card}>
-                {/* 상품 이미지 */}
+                {/* 1. 상품 이미지 */}
                 <div className={styles.imageWrapper}>
                     <Image
                         src={imageUrl}
@@ -52,9 +52,17 @@ const ProductCard: React.FC<ProductCardProps> = ({
                         sizes="(max-width: 768px) 50vw, 25vw"
                         priority={false}
                     />
+                    <Image
+                        src={'/images/ic_like.svg'}
+                        alt={'like'}
+                        className={styles.likeIcon}
+                        width={24}
+                        height={24}
+                        priority={false}
+                    />
                 </div>
 
-                {/* 상품 정보 */}
+                {/* 2. 상품 정보 */}
                 <div className={styles.info}>
                     {/* 브랜드명 */}
                     {brand && <span className={styles.brand}>{brand}</span>}
@@ -70,36 +78,31 @@ const ProductCard: React.FC<ProductCardProps> = ({
                         <span className={styles.price}>{price.toLocaleString()}</span>
                     </div>
 
-                    {/* 원가 */}
-                    {originalPrice && (
-                        <span className={styles.originalPrice}>{originalPrice.toLocaleString()}</span>
-                    )}
-
-                    {/* 배송 정보 */}
-                    {deliveryInfo && (
-                        <span className={styles.deliveryInfo}>{deliveryInfo}</span>
-                    )}
-
-                    {/* 별점 및 리뷰 */}
-                    {rating !== undefined && (
-                        <div className={styles.ratingRow}>
-                            <Image src="/images/ic_star.svg" alt="별점" width={12} height={12} />
-                            <span className={styles.rating}>{rating}</span>
-                            {reviewCount !== undefined && (
-                                <span className={styles.reviewCount}>({reviewCount})</span>
-                            )}
-                        </div>
-                    )}
-
-                    {/* 태그 */}
-                    {tags.length > 0 && (
-                        <div className={styles.tags}>
-                            {tags.map((tag, idx) => (
-                                <span key={idx} className={styles.tag}>{tag}</span>
-                            ))}
-                        </div>
-                    )}
+                    {/* 배송/쿠폰 태그 */}
+                    <div className={styles.badges}>
+                        <span className={styles.badgeFreeDelivery}>무료배송</span>
+                        <span className={styles.badgeCoupon}>쿠폰할인</span>
+                    </div>
                 </div>
+
+                {/* 3. 별점 및 좋아요 */}
+                {((reviewCount !== undefined && reviewCount > 0) || (likeCount !== undefined && likeCount > 0)) && (
+                    <div className={styles.ratingRow}>
+                        {reviewCount !== undefined && reviewCount > 0 && (
+                            <div className={styles.ratingGroup}>
+                                <Image src="/images/ic_star.svg" alt="별점" width={12} height={12} />
+                                <span className={styles.rating}>{rating}</span>
+                                <span className={styles.reviewCount}>({reviewCount.toLocaleString()})</span>
+                            </div>
+                        )}
+                        {likeCount !== undefined && likeCount > 0 && (
+                            <div className={styles.likeGroup}>
+                                <Image src="/images/ic_heart.svg" alt="좋아요" width={12} height={12} />
+                                <span className={styles.likeCount}>{likeCount.toLocaleString()}</span>
+                            </div>
+                        )}
+                    </div>
+                )}
             </Link>
         </motion.div>
     );
