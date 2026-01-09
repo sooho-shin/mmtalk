@@ -15,8 +15,8 @@ yarn install
 프로젝트 루트에 `.env.local` 파일을 생성하고 다음 환경 변수를 설정합니다:
 
 ```
-NEXT_PUBLIC_GRAPHQL_ENDPOINT=https://assignment.mobile.mmtalk.kr/graphql
-NEXT_PUBLIC_MMTALK_API_TOKEN=2G8QgQ5RCM
+NEXT_PUBLIC_GRAPHQL_ENDPOINT=your_graphql_endpoint
+NEXT_PUBLIC_MMTALK_API_TOKEN=your_api_token
 ```
 
 ### 3. 개발 서버 실행
@@ -326,13 +326,4 @@ const nextConfig = {
 };
 ```
 
----
-
-## 📝 API 정보
-
-| 용도 | 엔드포인트 | 인증 |
-|-----|-----------|-----|
-| GraphQL | `https://assignment.mobile.mmtalk.kr/graphql` | Bearer Token |
-
-인증 토큰: `Bearer 2G8QgQ5RCM`
 
