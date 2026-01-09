@@ -68,3 +68,4 @@ yarn-error.log
 *.temp
 
 .mcp
+REVIEW_SUMMARY.md

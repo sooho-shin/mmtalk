@@ -1,25 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useCallback, useState } from 'react';
+import { useEffect, useRef, useCallback, useState, useMemo } from 'react';
 import { useLazyQuery } from '@apollo/client';
-import { motion } from 'framer-motion';
 import { Header } from './(components)/layout';
 import { ProductGrid } from './(components)/product';
 import { GET_PRODUCTS, GetProductsData, GetProductsVariables, Product } from '@/graphql/queries/getProducts';
 import styles from './page.module.scss';
 
 const SCROLL_POSITION_KEY = 'products_scroll_position';
-
-// 컨테이너 애니메이션
-const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-        opacity: 1,
-        transition: {
-            staggerChildren: 0.05
-        }
-    }
-};
 
 interface TransformedProduct {
     id: string;
@@ -45,7 +33,7 @@ interface HomeClientProps {
 }
 
 export default function HomeClient({ initialProducts, initialMeta }: HomeClientProps) {
-    const observerRef = useRef<HTMLDivElement>(null);
+
     const containerRef = useRef<HTMLDivElement>(null);
     const isRestoringScroll = useRef(false);
     const lastFetchedPage = useRef(initialMeta.page); // 마지막으로 fetch한 페이지
@@ -79,23 +67,26 @@ export default function HomeClient({ initialProducts, initialMeta }: HomeClientP
 
     const hasMore = currentPage < totalPage;
 
-    // API 응답을 컴포넌트 props 형식으로 변환
-    const transformedProducts: TransformedProduct[] = allProducts.map(product => ({
-        id: String(product.productNo),
-        name: product.productName,
-        brand: product.brandName,
-        price: product.salePrice - product.immediateDiscountAmt,
-        originalPrice: product.immediateDiscountAmt > 0 ? product.salePrice : undefined,
-        imageUrl: product.listImageUrls[0]?.startsWith('//')
-            ? `https:${product.listImageUrls[0]}`
-            : product.listImageUrls[0],
-        rating: product.reviewRating,
-        reviewCount: product.totalReviewCount,
-        likeCount: product.likeCount,
-        discount: product.immediateDiscountAmt > 0
-            ? Math.round((product.immediateDiscountAmt / product.salePrice) * 100)
-            : undefined,
-    }));
+    // API 응답을 컴포넌트 props 형식으로 변환 (메모이제이션 추가)
+    const transformedProducts: TransformedProduct[] = useMemo(() => {
+        return allProducts.map(product => ({
+            id: String(product.productNo),
+            name: product.productName,
+            brand: product.brandName,
+            price: product.salePrice - product.immediateDiscountAmt,
+            originalPrice: product.immediateDiscountAmt > 0 ? product.salePrice : undefined,
+            imageUrl: product.listImageUrls[0]?.startsWith('//')
+                ? `https:${product.listImageUrls[0]}`
+                : product.listImageUrls[0],
+            rating: product.reviewRating,
+            reviewCount: product.totalReviewCount,
+            likeCount: product.likeCount,
+            discount: product.immediateDiscountAmt > 0
+                ? Math.round((product.immediateDiscountAmt / product.salePrice) * 100)
+                : undefined,
+        }));
+    }, [allProducts]);
+
 
     // 다음 페이지 로드
     const handleLoadMore = useCallback(() => {
@@ -111,31 +102,6 @@ export default function HomeClient({ initialProducts, initialMeta }: HomeClientP
             variables: { page: nextPage, limit: 20 }
         });
     }, [fetchProducts, isFetching, loading, totalPage]);
-
-    // 무한스크롤: IntersectionObserver로 하단 감지
-    useEffect(() => {
-        const currentObserverRef = observerRef.current;
-
-        const observer = new IntersectionObserver(
-            (entries) => {
-                if (entries[0].isIntersecting) {
-                    handleLoadMore();
-                }
-            },
-            { threshold: 0.1, rootMargin: '100px' }
-        );
-
-        if (currentObserverRef) {
-            observer.observe(currentObserverRef);
-        }
-
-        return () => {
-            if (currentObserverRef) {
-                observer.unobserve(currentObserverRef);
-            }
-            observer.disconnect();
-        };
-    }, [handleLoadMore]);
 
     // 스크롤 위치 저장
     useEffect(() => {
@@ -166,20 +132,20 @@ export default function HomeClient({ initialProducts, initialMeta }: HomeClientP
     }, [allProducts.length]);
 
     return (
-        <motion.div
+        <div
             ref={containerRef}
             className={styles.container}
-            initial="hidden"
-            animate="visible"
-            variants={containerVariants}
         >
             <Header title="쇼핑" />
 
             <main className={styles.main}>
-                <ProductGrid products={transformedProducts} />
+                <ProductGrid
+                    products={transformedProducts}
+                    loadMore={handleLoadMore}
+                />
 
-                {/* 무한스크롤 트리거 영역 */}
-                <div ref={observerRef} className={styles.loadingTrigger}>
+                {/* 무한스크롤 로딩/종료 영역 */}
+                <div className={styles.loadingTrigger}>
                     {(isFetching || loading) && (
                         <div className={styles.loadingMore}>
                             <div className={styles.spinner} />
@@ -192,6 +158,8 @@ export default function HomeClient({ initialProducts, initialMeta }: HomeClientP
                     )}
                 </div>
             </main>
-        </motion.div>
+        </div>
     );
 }
+
+

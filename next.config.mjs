@@ -5,6 +5,7 @@ const nextConfig = {
   reactStrictMode: false,
   sassOptions: {
     includePaths: [path.join(process.cwd(), 'styles')],
+    prependData: `@import "variables"; @import "mixins";`,
   },
   images: {
     remotePatterns: [

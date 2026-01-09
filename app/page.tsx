@@ -1,67 +1,21 @@
-import { Product } from '@/graphql/queries/getProducts';
+import { GET_PRODUCTS, GetProductsData } from '@/graphql/queries/getProducts';
+import { fetchGraphQL } from '@/utils/graphql';
 import HomeClient from './HomeClient';
-
-const GRAPHQL_ENDPOINT = 'https://assignment.mobile.mmtalk.kr/graphql';
+import { print } from 'graphql';
 
 // SSR로 초기 상품 데이터 fetch (GraphQL)
 async function getInitialProducts() {
     try {
-        const response = await fetch(GRAPHQL_ENDPOINT, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'authorization': 'Bearer 2G8QgQ5RCM',
-            },
-            body: JSON.stringify({
-                query: `
-                    query GetProducts($limit: Int = 20, $page: Int = 1) {
-                        products(limit: $limit, page: $page) {
-                            products {
-                                productNo
-                                productName
-                                brandName
-                                salePrice
-                                immediateDiscountAmt
-                                immediateDiscountUnitType
-                                listImageUrls
-                                imageUrls
-                                reviewRating
-                                totalReviewCount
-                                isSoldOut
-                                likeCount
-                                saleCnt
-                                saleStatusType
-                            }
-                            meta {
-                                totalCount
-                                page
-                                limit
-                                totalPage
-                            }
-                        }
-                    }
-                `,
-                variables: { limit: 20, page: 1 },
-            }),
-            cache: 'no-store',
+        const data = await fetchGraphQL<GetProductsData>(print(GET_PRODUCTS), {
+            limit: 20,
+            page: 1,
         });
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const result = await response.json();
-
-        if (result.errors) {
-            console.error('GraphQL errors:', result.errors);
-            throw new Error('GraphQL error');
-        }
-
-        if (!result.data?.products) {
+        if (!data?.products) {
             throw new Error('No products data');
         }
 
-        return result.data.products;
+        return data.products;
     } catch (error) {
         console.error('Failed to fetch products:', error);
         return {
@@ -75,6 +29,7 @@ async function getInitialProducts() {
         };
     }
 }
+
 
 export default async function Home() {
     const productsData = await getInitialProducts();

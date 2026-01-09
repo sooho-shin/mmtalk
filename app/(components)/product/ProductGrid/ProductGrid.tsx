@@ -1,6 +1,7 @@
 "use client";
 
-import React from 'react';
+import React, { forwardRef } from 'react';
+import { VirtuosoGrid } from 'react-virtuoso';
 import styles from './ProductGrid.module.scss';
 import ProductCard from '../ProductCard';
 
@@ -21,16 +22,41 @@ interface Product {
 
 interface ProductGridProps {
     products: Product[];
+    loadMore?: () => void;
 }
 
-const ProductGrid: React.FC<ProductGridProps> = ({ products }) => {
+const ProductGrid: React.FC<ProductGridProps> = ({ products, loadMore }) => {
+
     return (
-        <div className={styles.grid}>
-            {products.map((product) => (
-                <ProductCard key={product.id} {...product} />
-            ))}
-        </div>
+        <VirtuosoGrid
+            useWindowScroll
+            data={products}
+            endReached={loadMore}
+            overscan={800}
+
+            components={{
+                List: forwardRef<HTMLDivElement, any>(({ children, ...props }, ref) => (
+                    <div {...props} ref={ref} className={styles.grid}>
+                        {children}
+                    </div>
+                )),
+                Item: ({ children, ...props }) => (
+                    <div {...props} className={styles.gridItem}>
+                        {children}
+                    </div>
+                )
+            }}
+            itemContent={(index, product) => (
+                <ProductCard
+                    key={product.id}
+                    {...product}
+                    priority={index < 4}
+                />
+            )}
+
+        />
     );
 };
 
 export default ProductGrid;
+

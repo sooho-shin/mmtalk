@@ -1,8 +1,11 @@
-@import '../../../../styles/variables';
 
 .grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: $spacing-24 $spacing-12;
     padding: 0 $spacing-20;
+}
+
+.gridItem {
+    width: 100%;
 }

@@ -51,17 +51,26 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
         { variables: { productNo } }
     );
 
-    const optionInfo = optionData?.productOption;
-    const optionType = optionInfo?.type; // COMBINATION, REQUIRED, DEFAULT 등
-    const labels = optionInfo?.labels || [];
-    const multiLevelOptions = optionInfo?.multiLevelOptions || [];
-    const flatOptions = optionInfo?.flatOptions || [];
+    const { optionInfo, optionType, labels, multiLevelOptions, flatOptions, isDefaultType, hasChildren } = useMemo(() => {
+        const info = optionData?.productOption;
+        const type = info?.type;
+        const labs = info?.labels || [];
+        const multi = info?.multiLevelOptions || [];
+        const flat = info?.flatOptions || [];
+        const isDefault = type === 'DEFAULT';
+        const hasChild = multi.some(opt => opt.children && opt.children.length > 0);
 
-    // DEFAULT 타입: 옵션 선택 없이 바로 상품 선택
-    const isDefaultType = optionType === 'DEFAULT';
+        return {
+            optionInfo: info,
+            optionType: type,
+            labels: labs,
+            multiLevelOptions: multi,
+            flatOptions: flat,
+            isDefaultType: isDefault,
+            hasChildren: hasChild
+        };
+    }, [optionData]);
 
-    // children이 있는지 확인 (2단계 옵션인지)
-    const hasChildren = multiLevelOptions.some(opt => opt.children && opt.children.length > 0);
 
     // DEFAULT 타입일 때 바텀시트 열리면 자동으로 상품 추가
     useEffect(() => {
@@ -238,7 +247,9 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
         setSelectedOptions(prev => prev.filter(opt => opt.optionNo !== optionNo));
     };
 
-    const totalPrice = selectedOptions.reduce((sum, opt) => sum + (opt.price * opt.quantity), 0);
+    const totalPrice = useMemo(() =>
+        selectedOptions.reduce((sum, opt) => sum + (opt.price * opt.quantity), 0),
+        [selectedOptions]);
 
     // 필수옵션이 선택되었는지 확인 (REQUIRED 타입에서만 적용)
     const hasRequiredOptionSelected = useMemo(() => {
@@ -259,13 +270,18 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
         }
     };
 
-    const discountPercent = product.immediateDiscountAmt > 0
-        ? Math.round((product.immediateDiscountAmt / product.salePrice) * 100)
-        : 0;
-    const finalPrice = product.salePrice - product.immediateDiscountAmt;
-    const imageUrl = product.imageUrls[0]?.startsWith('//')
-        ? `https:${product.imageUrls[0]}`
-        : product.imageUrls[0];
+    const { discountPercent, finalPrice, imageUrl } = useMemo(() => {
+        const discount = product.immediateDiscountAmt > 0
+            ? Math.round((product.immediateDiscountAmt / product.salePrice) * 100)
+            : 0;
+        const final = product.salePrice - product.immediateDiscountAmt;
+        const url = product.imageUrls[0]?.startsWith('//')
+            ? `https:${product.imageUrls[0]}`
+            : product.imageUrls[0];
+
+        return { discountPercent: discount, finalPrice: final, imageUrl: url };
+    }, [product]);
+
 
     return (
         <div className={styles.container}>
